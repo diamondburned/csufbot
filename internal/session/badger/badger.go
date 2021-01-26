@@ -94,10 +94,14 @@ func (s *Store) FindTicket(token string) (*session.Ticket, error) {
 
 func (s *Store) InvalidateTicket(token string) {
 	err := s.db.Update(func(txn *badger.Txn) error {
-		return txn.Delete([]byte(token))
+		err := txn.Delete([]byte(token))
+		if err == nil || errors.Is(err, badger.ErrKeyNotFound) {
+			return nil
+		}
+		return err
 	})
 
 	if err != nil {
-		log.Println("BUG: badger failed to invalidate ticket:", err)
+		log.Panicln("BUG: badger failed to invalidate ticket:", err)
 	}
 }
