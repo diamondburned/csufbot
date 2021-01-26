@@ -1,0 +1,65 @@
+[session]
+database = "badger"
+address  = "/tmp/session.badger.db"
+
+[[services.canvas]]
+name = "Canvas"
+host = "csufullerton.instructure.com"
+instructions = """
+<h3>To obtain the token, do:</h3>
+
+<ol>
+
+<li>
+	Head to
+	<a href="https://csufullerton.instructure.com/profile/settings">
+		Canvas Profile Settings
+	</a>.
+</li>
+
+<li>
+	Scroll down to "Approved Integrations" and click "New Access Token."
+</li>
+
+<li>
+	Write "Discord Auth" for Purpose, optionally set an "Expires" date to the
+	future and click Generate Token.
+</li>
+
+<li>
+	Copy the "Token" and paste it into this page.
+</li>
+
+</ol>
+"""
+
+[[services.moodle]]
+name = "TITANium Communities"
+host = "communities.fullerton.edu"
+instruction = """
+<h3>To obtain the token, do:</h3>
+
+<ol>
+
+<li>
+	Go to <a href="https://my.fullerton.edu">my.fullerton.edu</a> and log in.
+</li>
+
+<li>
+	After logging in, head to
+	<a href="https://communities.fullerton.edu/user/preferences.php">
+		TITANium Communities Preferences
+	</a>.
+</li>
+
+<li>
+	Under the "User account" section, go to "Security keys".
+</li>
+
+<li>
+	Find the "Moodle mobile web service" Service and copy its key (to the left)
+	into this page.
+</li>
+
+</ol>
+"""
