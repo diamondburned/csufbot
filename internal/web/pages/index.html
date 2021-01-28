@@ -3,4 +3,44 @@
 
 {{ template "css" . }}
 
+<div class="container grid-sm">
+	<div class="discord-info">
+		{{ $member := .Member }}
+		{{ $guild  := .Guild  }}
 
+		<div class="user">
+			<figure class="avatar avatar-xl">
+				<img
+					src="{{ $member.User.AvatarURL }}?size=64"
+					alt="Avatar"
+				>
+				<img
+					src="{{ $guild.IconURL }}?size=32"
+					alt="Guild Icon" class="avatar-icon"
+				>
+			</figure>
+			<div class="name">
+				{{ with $member.Nick }}
+				<span class="nickname">{{ . }}</span>
+				{{ end }}
+				<span class="username">{{ $member.User.Username }}</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card-header">
+			<h3>Linking</h3>
+		</div>
+		<div class="card-body">
+			{{ range .Services }}
+			<a class="btn" href="/{{.NameHash}}">
+				<figure class="avatar avatar-xs">
+					<img src="{{ .Icon }}" alt="Icon">
+				</figure>
+				<span>{{ .Name }}</span>
+			</a>
+			{{ end }}
+		</div>
+	</div>
+</div>

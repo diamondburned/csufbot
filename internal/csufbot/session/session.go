@@ -16,11 +16,11 @@ type Storer interface {
 	// erroneous.
 	InsertTicket(t *Ticket) error
 	// FindTicket finds a ticket from the given token.
-	FindTicket(token string) (*Ticket, error)
+	FindTicket(typ TicketType, token string) (*Ticket, error)
 	// InvalidateTicket invalidates a ticket. If the database fails to
 	// invalidate and cannot restore the database to sane state, then it is
 	// allowed to panic.
-	InvalidateTicket(token string)
+	InvalidateTicket(typ TicketType, token string)
 }
 
 var (
@@ -43,9 +43,21 @@ func NewRepository(storer Storer) Repository {
 	}
 }
 
+// FindTicket finds an existing ticket from the given token.
+func (r Repository) FindTicket(typ TicketType, token string) (*Ticket, error) {
+	return r.storer.FindTicket(typ, token)
+}
+
 // Register registers the given user ID into a newly registered ticket.
-func (r Repository) Register(userID discord.UserID) (*Ticket, error) {
-	var ticket = Ticket{UserID: userID}
+func (r Repository) Register(
+	ticketType TicketType,
+	guildID discord.GuildID, userID discord.UserID) (*Ticket, error) {
+
+	var ticket = Ticket{
+		Type:    ticketType,
+		GuildID: guildID,
+		UserID:  userID,
+	}
 	var err error
 
 	// Try 10 times to randomize tokens.
@@ -72,6 +84,21 @@ func (r Repository) Register(userID discord.UserID) (*Ticket, error) {
 
 // Ticket is a repository ticket.
 type Ticket struct {
-	Token  string
-	UserID discord.UserID
+	Type    TicketType
+	Token   string
+	GuildID discord.GuildID
+	UserID  discord.UserID
 }
+
+// TicketType describes the action type that the ticket is for.
+type TicketType uint8
+
+const (
+	// UserConnectTicket is a ticket type for new users connecting their
+	// accounts to the bot for the first time. This ticket type may be used for
+	// each LMS service.
+	UserConnectTicket TicketType = iota
+	// GuildOwnerTicket is a ticket type for any administrative action. This
+	// includes linking a new guild to courses and editing existing courses.
+	GuildOwnerTicket
+)

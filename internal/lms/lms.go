@@ -4,6 +4,7 @@ package lms
 
 import (
 	"strings"
+	"time"
 )
 
 // Service describes an LMS service.
@@ -33,11 +34,29 @@ type TokenAuthorization interface {
 type Session interface {
 	// User returns the current user.
 	User() (*User, error)
+	// Courses returns the list of courses that the current user is enrolled in.
+	Courses() ([]Course, error)
 }
+
+// CourseID is the type for the course ID.
+type CourseID string
+
+// Course describes a course.
+type Course struct {
+	ID   CourseID
+	Name string
+
+	// Course dates.
+	Start time.Time
+	End   time.Time
+}
+
+// UserID is the type for a user ID.
+type UserID string
 
 // User describes a user.
 type User struct {
-	ID     string
+	ID     UserID
 	Name   Name
 	Avatar string // URL
 }

@@ -1,6 +1,9 @@
-[session]
-database = "badger"
-address  = "/tmp/session.badger.db"
+[discord]
+token = ""
+
+[database]
+name = "badger" # TODO: sqlite and pgx
+address = "/path/to/db"
 
 [[services.canvas]]
 name = "Canvas"

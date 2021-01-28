@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/diamondburned/arikawa/v2/state"
 	"github.com/diamondburned/csufbot/internal/lms"
-	"github.com/diamondburned/csufbot/internal/session"
+	"github.com/diamondburned/csufbot/internal/csufbot/session"
 	"github.com/diamondburned/tmplutil"
 	"github.com/phogolabs/parcello"
 )
@@ -30,6 +31,7 @@ type ctxTypes uint8
 
 const (
 	renderCfgCtx ctxTypes = iota
+	ticketCtx
 )
 
 // LMSService describes a LMS service.
@@ -53,12 +55,16 @@ func NewLMSService(svc lms.Service, instruction string) LMSService {
 
 // UserRegisterer is the interface to register a LMS user from the given ticket.
 type UserRegisterer interface {
-	RegisterUser(session.Ticket, lms.Service, lms.User)
+	RegisterUser(*session.Ticket, lms.Service, *lms.User)
 }
 
 // RenderConfig is the config to render with.
 type RenderConfig struct {
-	Services   []LMSService
+	// Constants
+	Services []LMSService
+
+	// States
+	Discord    *state.State
 	Sessions   session.Repository
 	Registerer UserRegisterer
 }
@@ -73,8 +79,11 @@ func (rcfg RenderConfig) FindService(nameHash string) *LMSService {
 	return nil
 }
 
+// Middleware is the type for a middleware.
+type Middleware = func(http.Handler) http.Handler
+
 // InjectConfig injects the render config.
-func InjectConfig(config RenderConfig) func(http.Handler) http.Handler {
+func InjectConfig(config RenderConfig) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), renderCfgCtx, config)

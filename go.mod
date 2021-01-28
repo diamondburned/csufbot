@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgraph-io/badger/v3 v3.2011.1
+	github.com/diamondburned/arikawa v1.3.14
 	github.com/diamondburned/arikawa/v2 v2.0.1
 	github.com/diamondburned/tmplutil v0.0.0-20210126055613-f434a35f203a
 	github.com/go-chi/chi v1.5.1
