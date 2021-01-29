@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/csufbot"
 	"github.com/diamondburned/csufbot/internal/lms"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
@@ -14,6 +13,12 @@ import (
 
 var (
 	courses = web.Templater.Register("courses", "pages/admin/courses.html")
+)
+
+type ctxKey uint8
+
+const (
+	routeDataKey ctxKey = iota
 )
 
 func Mount() http.Handler {
@@ -34,48 +39,18 @@ func guildID(r *http.Request) discord.GuildID {
 	return discord.GuildID(s)
 }
 
-func adminOnly(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		guildID := guildID(r)
-		if !guildID.IsValid() {
-			w.WriteHeader(404)
-			return
-		}
-
-		userClient := oauth.Client(r.Context())
-		userID, err := userClient.UserID()
-		if err != nil {
-			// Must be a token error that this fails.
-			w.WriteHeader(400)
-			return
-		}
-
-		cfg := web.GetRenderConfig(r.Context())
-
-		if !csufbot.UserIsAdmin(cfg.Discord.State, userID, guildID) {
-			w.WriteHeader(401)
-			return
-		}
-	})
-}
-
 type chooseCoursesData struct {
 	web.RenderConfig
+	routeData
 	Courses []lms.Course
 }
 
 func chooseCourses(w http.ResponseWriter, r *http.Request) {
 	// TODO: button to link more classes
 	cfg := web.GetRenderConfig(r.Context())
-	cli := oauth.Client(r.Context())
+	routeData := getRouteData(r.Context())
 
-	userID, err := cli.UserID()
-	if err != nil {
-		w.WriteHeader(400)
-		return
-	}
-
-	u, err := cfg.Users.User(userID)
+	u, err := cfg.Users.User(routeData.UserID)
 	if err != nil { // Invalid user ID.
 		w.WriteHeader(401)
 		return
@@ -90,6 +65,7 @@ func chooseCourses(w http.ResponseWriter, r *http.Request) {
 
 	courses.Execute(w, chooseCoursesData{
 		RenderConfig: cfg,
+		routeData:    routeData,
 		Courses:      c,
 	})
 }

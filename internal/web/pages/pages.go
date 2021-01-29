@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/diamondburned/csufbot/internal/web"
+	"github.com/diamondburned/csufbot/internal/web/pages/admin"
 	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
 	"github.com/diamondburned/csufbot/internal/web/pages/sync"
 	"github.com/go-chi/chi"
@@ -19,6 +20,7 @@ func Mount(cfg web.RenderConfig) http.Handler {
 	})
 
 	r.Mount("/sync", sync.Mount())
+	r.Mount("/admin", admin.Mount())
 	r.Mount("/oauth", oauth.Mount())
 
 	return r

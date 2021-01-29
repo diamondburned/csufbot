@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/arikawa/v2/state"
 	"github.com/diamondburned/csufbot/internal/lms"
 )
 
@@ -15,8 +14,6 @@ type User struct {
 	// Services is the list of services that the user has previously synced
 	// with.
 	Services []UserInService
-	// Enrolled contains a list of course IDs that the user is enrolled in.
-	Enrolled []lms.CourseID
 }
 
 // LastSynced returns the last synced time of the user's service. It returns a
@@ -33,6 +30,8 @@ func (u User) LastSynced(host lms.Host) time.Time {
 // UserInService describes the user in a service.
 type UserInService struct {
 	lms.User
+	// Enrolled contains a list of course IDs that the user is enrolled in.
+	Enrolled []lms.CourseID
 	// ServiceHost is the service host that this information is from.
 	ServiceHost lms.Host
 	// LastSynced is the last time this information was synced.
@@ -45,22 +44,5 @@ type UserStorer interface {
 	User(id discord.UserID) (*User, error)
 	// Sync synchronizes the given list of courses and the user information from
 	// the service with the database.
-	Sync(id discord.UserID, svc UserInService, courses []lms.CourseID) error
-}
-
-// UserIsAdmin returns true if the given user ID is the owner or administrator
-// of the given guild.
-func UserIsAdmin(s *state.State, uID discord.UserID, gID discord.GuildID) bool {
-	guild, err := s.Guild(gID)
-	if err != nil {
-		return false
-	}
-
-	member, err := s.Member(gID, uID)
-	if err != nil {
-		return false
-	}
-
-	perms := discord.CalcOverwrites(*guild, discord.Channel{}, *member)
-	return perms.Has(discord.PermissionAdministrator)
+	Sync(id discord.UserID, svc UserInService) error
 }
