@@ -34,6 +34,10 @@ func (svc service) Name() string {
 	return svc.name
 }
 
+func (svc service) Host() lms.Host {
+	return lms.Host(svc.host)
+}
+
 func (svc service) Icon() string {
 	return svc.icon
 }
@@ -50,31 +54,59 @@ type tokenAuth struct {
 
 func (auth tokenAuth) Authorize(token string) (lms.Session, error) {
 	m := moodle.NewMoodleApi(auth.host, token)
-	return session{m}, nil
+
+	// I HATE MOODLE. I HATE PHP. I HATE EVERYTHING THAT PHP INFECTS.
+	_, _, _, userID, err := m.GetSiteInfo()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get info")
+	}
+
+	return session{m, userID}, nil
 }
 
 type session struct {
-	m *moodle.MoodleApi
+	m      *moodle.MoodleApi
+	userID int64
 }
 
 func (s session) User() (*lms.User, error) {
-	// I HATE MOODLE. I HATE PHP. I HATE EVERYTHING THAT PHP INFECTS.
-	_, first, last, userID, err := s.m.GetSiteInfo()
+	person, err := s.m.GetPersonByMoodleId(s.userID)
 	if err != nil {
 		return nil, err
 	}
 
-	person, err := s.m.GetPersonByMoodleId(userID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get person")
-	}
-
 	return &lms.User{
-		ID: strconv.FormatInt(userID, 10),
+		ID: lms.UserID(strconv.FormatInt(s.userID, 10)),
 		Name: lms.Name{
-			First: first,
-			Last:  last,
+			First: person.FirstName,
+			Last:  person.LastName,
 		},
 		Avatar: person.ProfileImageUrl,
 	}, nil
+}
+
+func (s session) Courses() ([]lms.Course, error) {
+	courses, err := s.m.GetPersonCourseList(s.userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var lmsCourses = make([]lms.Course, len(courses))
+	for i, course := range courses {
+		lmsCourse := lms.Course{
+			ID:   lms.CourseID(strconv.FormatInt(course.MoodleId, 10)),
+			Name: course.Name,
+		}
+
+		if course.Start != nil {
+			lmsCourse.Start = *course.Start
+		}
+		if course.End != nil {
+			lmsCourse.End = *course.End
+		}
+
+		lmsCourses[i] = lmsCourse
+	}
+
+	return lmsCourses, nil
 }

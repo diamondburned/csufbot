@@ -33,6 +33,10 @@ func (svc service) Name() string {
 	return svc.name
 }
 
+func (svc service) Host() lms.Host {
+	return lms.Host(svc.host)
+}
+
 func (svc service) Icon() string {
 	return svc.icon
 }
@@ -63,11 +67,30 @@ func (s session) User() (*lms.User, error) {
 	}
 
 	return &lms.User{
-		ID: strconv.Itoa(user.ID),
+		ID: lms.UserID(strconv.Itoa(user.ID)),
 		Name: lms.Name{
 			First:     user.Name,
 			Preferred: user.ShortName,
 		},
 		Avatar: user.AvatarURL,
 	}, nil
+}
+
+func (s session) Courses() ([]lms.Course, error) {
+	courses, err := s.c.Courses()
+	if err != nil {
+		return nil, err
+	}
+
+	var lmsCourses = make([]lms.Course, len(courses))
+	for i, course := range courses {
+		lmsCourses[i] = lms.Course{
+			ID:    lms.CourseID(strconv.Itoa(course.ID)),
+			Name:  course.Name,
+			Start: course.StartAt,
+			End:   course.EndAt,
+		}
+	}
+
+	return lmsCourses, nil
 }

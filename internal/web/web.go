@@ -2,17 +2,17 @@ package web
 
 import (
 	"context"
-	"hash/fnv"
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/diamondburned/arikawa/v2/state"
+	"github.com/diamondburned/csufbot/internal/csufbot"
 	"github.com/diamondburned/csufbot/internal/lms"
-	"github.com/diamondburned/csufbot/internal/csufbot/session"
 	"github.com/diamondburned/tmplutil"
 	"github.com/phogolabs/parcello"
+
+	humanize "github.com/dustin/go-humanize"
 )
 
 //go:generate go run github.com/phogolabs/parcello/cmd/parcello -r -i *.go
@@ -24,55 +24,51 @@ var Templater = tmplutil.Templater{
 		"header": "components/header.html",
 		"footer": "components/footer.html",
 	},
-	Functions: template.FuncMap{},
+	Functions: template.FuncMap{
+		"humanizeTime": humanize.Time,
+	},
 }
 
 type ctxTypes uint8
 
 const (
 	renderCfgCtx ctxTypes = iota
-	ticketCtx
 )
 
 // LMSService describes a LMS service.
 type LMSService struct {
 	lms.Service
-	NameHash    string
 	Instruction template.HTML
 }
 
 // NewLMSService creates a new LMS service.
 func NewLMSService(svc lms.Service, instruction string) LMSService {
-	h := fnv.New64a()
-	h.Write([]byte(svc.Name()))
-
 	return LMSService{
 		Service:     svc,
-		NameHash:    strconv.FormatUint(h.Sum64(), 36),
 		Instruction: template.HTML(instruction),
 	}
 }
 
-// UserRegisterer is the interface to register a LMS user from the given ticket.
-type UserRegisterer interface {
-	RegisterUser(*session.Ticket, lms.Service, *lms.User)
-}
-
 // RenderConfig is the config to render with.
 type RenderConfig struct {
-	// Constants
+	HTTPS    bool
 	Services []LMSService
 
-	// States
-	Discord    *state.State
-	Sessions   session.Repository
-	Registerer UserRegisterer
+	csufbot.Store
+	Discord DiscordState
+}
+
+// DiscordState contains information about the current Discord session.
+type DiscordState struct {
+	*state.State
+	// Secret is the OAuth client secret.
+	Secret string
 }
 
 // FindService finds the LMS service from a given name hash.
-func (rcfg RenderConfig) FindService(nameHash string) *LMSService {
+func (rcfg RenderConfig) FindService(host lms.Host) *LMSService {
 	for i, svc := range rcfg.Services {
-		if svc.NameHash == nameHash {
+		if svc.Host() == host {
 			return &rcfg.Services[i]
 		}
 	}

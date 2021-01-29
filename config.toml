@@ -1,5 +1,10 @@
+[http]
+address = ":8081" # TODO: unix socket
+https = false # used for OAuth redirection; optional if autoredirect
+
 [discord]
 token = ""
+secret = ""
 
 [database]
 name = "badger" # TODO: sqlite and pgx

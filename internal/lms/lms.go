@@ -3,14 +3,54 @@
 package lms
 
 import (
+	"hash/fnv"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 )
+
+var (
+	// activeHasher is a singleflight state to prevent cache stampeding.
+	activeHasher singleflight.Group
+	// serviceHashes contains a map of service names to short hashes.
+	serviceHashes sync.Map
+)
+
+// ServiceHash hashes the given service and return a short unique identifier of
+// it. The ID is guaranteed to be reproducible with the same service name.
+func ServiceHash(svc Service) string {
+	hash, ok := serviceHashes.Load(svc)
+	if ok {
+		return hash.(string)
+	}
+
+	id := svc.Name()
+
+	hash, _, _ = activeHasher.Do(id, func() (interface{}, error) {
+		h := fnv.New64a()
+		h.Write([]byte(id))
+
+		hash := strconv.FormatUint(h.Sum64(), 36)
+		serviceHashes.Store(svc, hash)
+
+		return hash, nil
+	})
+
+	return hash.(string)
+}
+
+// Host describes the hostname of a LMS service. It is specifically used as a
+// unique identifier among services.
+type Host string
 
 // Service describes an LMS service.
 type Service interface {
 	Name() string
 	Icon() string // URL
+	Host() Host
 	Authorize() AuthorizationMethods
 }
 

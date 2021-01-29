@@ -20,6 +20,7 @@ import (
 
 // Config is the application configuration.
 type Config struct {
+	HTTP     HTTPConfig     `toml:"http"`
 	Discord  DiscordConfig  `toml:"discord"`
 	Database DatabaseConfig `toml:"database"`
 	Services Services       `toml:"services"`
@@ -65,26 +66,36 @@ func (cfg *Config) FromFile(file string) error {
 	return nil
 }
 
+// HTTPConfig describes the configuration for the HTTP server.
+type HTTPConfig struct {
+	Address string `toml:"address"`
+	HTTPS   bool   `toml:"https"`
+}
+
 // DiscordConfig describes the configuration for the Discord bot.
 type DiscordConfig struct {
-	Token string `toml:"token"`
+	Token  string `toml:"token"`
+	Secret string `toml:"secret"`
 }
 
 // Open opens a new Discord state connection.
-func (dcfg DiscordConfig) Open() (*state.State, error) {
+func (dcfg DiscordConfig) Open() (web.DiscordState, error) {
 	s, err := state.New("Bot " + dcfg.Token)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create state")
+		return web.DiscordState{}, errors.Wrap(err, "failed to create state")
 	}
 
 	s.Gateway.AddIntents(gateway.IntentGuilds)
 	s.Gateway.AddIntents(gateway.IntentGuildMembers)
 
 	if err := s.Open(); err != nil {
-		return nil, errors.Wrap(err, "failed to open")
+		return web.DiscordState{}, errors.Wrap(err, "failed to open")
 	}
 
-	return s, nil
+	return web.DiscordState{
+		State:  s,
+		Secret: dcfg.Secret,
+	}, nil
 }
 
 // DatabaseConfig describes the configuration for the underlying database
@@ -98,14 +109,12 @@ type DatabaseConfig struct {
 func (dbcfg DatabaseConfig) Open() (store csufbot.Store, err error) {
 	switch dbcfg.Database {
 	case "badger":
-		db, err := badger.Open(dbcfg.Address)
+		_, err := badger.Open(dbcfg.Address)
 		if err != nil {
 			return store, errors.Wrap(err, "failed to open badger")
 		}
 
-		store = csufbot.Store{
-			Sessions: badger.NewSessionStore(db),
-		}
+		store = csufbot.Store{}
 
 	case "sqlite":
 		panic("TODO")

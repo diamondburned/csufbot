@@ -1,4 +1,4 @@
-package guild
+package csufbot
 
 import (
 	"github.com/diamondburned/arikawa/v2/discord"
@@ -14,14 +14,14 @@ type Guild struct {
 	RoleMap map[lms.CourseID]discord.RoleID
 }
 
-// Storer stores guild relationships and states.
-type Storer interface {
+// GuildStorer stores guild relationships and states.
+type GuildStorer interface {
 	// Guild gets a guild.
 	Guild(id discord.GuildID) (*Guild, error)
 	// AddCourses adds courses into the guild wherein each course must be mapped
 	// to a role. The courses must already be added into the database through
 	// CourseStorer.
-	AddCourses(courses map[lms.CourseID]discord.RoleID) error
+	AddCourses(guild discord.GuildID, courses map[lms.CourseID]discord.RoleID) error
 }
 
 // CourseMap constructs a backwards-lookup map to look up courses from roles.
