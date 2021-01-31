@@ -5,13 +5,14 @@ package sync
 import (
 	"log"
 	"net/http"
-	"time"
+	"sort"
 
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/internal/csufbot"
 	"github.com/diamondburned/csufbot/internal/lms"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
+	"github.com/diamondburned/csufbot/internal/web/pages/sync/service"
 	"github.com/go-chi/chi"
 )
 
@@ -23,11 +24,7 @@ func Mount() http.Handler {
 		r.Use(oauth.Require)
 
 		r.Get("/", render)
-
-		r.Route("/{serviceHost}", func(r chi.Router) {
-			r.Get("/", renderLink)
-			r.Post("/", postLink)
-		})
+		r.Mount("/{serviceHost}", service.Mount("serviceHost"))
 	})
 
 	return r
@@ -48,6 +45,76 @@ func (data syncData) User(id discord.UserID) *csufbot.User {
 	return user
 }
 
+// guildCourses extends a Discord guild to add courses as well.
+type guildCourses struct {
+	*discord.Guild
+	Courses []csufbot.Course
+}
+
+// GuildsInServices searches for the current user's guilds and returns a list of
+// guilds that they're in.
+func (data syncData) GuildsInServices() map[lms.Host][]guildCourses {
+	guilds, _ := data.Client.Guilds(100)
+	if len(guilds) == 0 {
+		return nil
+	}
+
+	return guildsInServices(guilds, data.RenderConfig)
+}
+
+func guildsInServices(guilds []discord.Guild, cfg web.RenderConfig) map[lms.Host][]guildCourses {
+	var guildIDCourses = make(map[discord.GuildID][]csufbot.Course, len(guilds))
+	for _, guild := range guilds {
+		guildIDCourses[guild.ID] = nil
+	}
+
+	if err := cfg.Guilds.GuildCourses(guildIDCourses); err != nil {
+		return nil
+	}
+
+	var guildMap = make(map[discord.GuildID]int, len(guilds))
+	for i, guild := range guilds {
+		guildMap[guild.ID] = i
+	}
+
+	var hostGuilds = make(map[lms.Host][]guildCourses, len(cfg.Services))
+
+	for _, svc := range cfg.Services {
+		host := svc.Host()
+		guildCoursesList := make([]guildCourses, 0, len(guildIDCourses))
+
+		for guildID, courses := range guildIDCourses {
+			// Get a pointer to the guild inside the slice allocated from Guilds.
+			guild := &guilds[guildMap[guildID]]
+
+			var filterCourses = make([]csufbot.Course, 0, len(courses))
+			for _, course := range courses {
+				if course.ServiceHost == host {
+					filterCourses = append(filterCourses, course)
+				}
+			}
+
+			if len(filterCourses) == 0 {
+				continue
+			}
+
+			guildCoursesList = append(guildCoursesList, guildCourses{
+				Guild:   guild,
+				Courses: filterCourses,
+			})
+		}
+
+		// Sort the guilds alphabetically.
+		sort.Slice(guildCoursesList, func(i, j int) bool {
+			return guildCoursesList[i].Name < guildCoursesList[j].Name
+		})
+
+		hostGuilds[host] = guildCoursesList
+	}
+
+	return hostGuilds
+}
+
 func render(w http.ResponseWriter, r *http.Request) {
 	err := sync.Execute(w, syncData{
 		RenderConfig: web.GetRenderConfig(r.Context()),
@@ -56,83 +123,5 @@ func render(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Println("failed to render:", err)
-	}
-}
-
-func getService(r *http.Request, cfg web.RenderConfig) *web.LMSService {
-	serviceHost := lms.Host(chi.URLParam(r, "serviceHost"))
-	return cfg.FindService(serviceHost)
-}
-
-func renderLink(w http.ResponseWriter, r *http.Request) {
-	cfg := web.GetRenderConfig(r.Context())
-	svc := getService(r, cfg)
-	if svc == nil {
-		w.WriteHeader(404)
-		return
-	}
-}
-
-// postLink is called after the user has submitted their LMS token.
-func postLink(w http.ResponseWriter, r *http.Request) {
-	cfg := web.GetRenderConfig(r.Context())
-	svc := getService(r, cfg)
-	if svc == nil {
-		w.WriteHeader(404)
-		return
-	}
-
-	token := r.FormValue("token")
-	if token == "" {
-		w.WriteHeader(400)
-		return
-	}
-
-	discordUser := oauth.Client(r.Context())
-	userID, err := discordUser.UserID()
-	if err != nil {
-		w.WriteHeader(400)
-		return
-	}
-
-	auth := svc.Authorize()
-
-	session, err := auth.Token.Authorize(token)
-	if err != nil {
-		w.WriteHeader(400)
-		return
-	}
-
-	courses, err := session.Courses()
-	if err != nil {
-		w.WriteHeader(400)
-		return
-	}
-
-	user, err := session.User()
-	if err != nil {
-		w.WriteHeader(400)
-		return
-	}
-
-	if err := cfg.Courses.UpsertCourses(courses...); err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	userService := csufbot.UserInService{
-		User:        *user,
-		Enrolled:    make([]lms.CourseID, len(courses)),
-		LastSynced:  time.Now(),
-		ServiceHost: svc.Host(),
-	}
-
-	for i, course := range courses {
-		userService.Enrolled[i] = course.ID
-	}
-
-	if err := cfg.Users.Sync(userID, userService); err != nil {
-		w.WriteHeader(500)
-		return
 	}
 }

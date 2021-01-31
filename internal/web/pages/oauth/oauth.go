@@ -41,7 +41,6 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 		Value:    t.AccessToken,
 		Expires:  t.Expiry,
 		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
 	})
 
 	redirectTo := "/"
@@ -89,7 +88,6 @@ func Require(next http.Handler) http.Handler {
 				Path:     "/oauth/redirect",
 				Value:    r.URL.Path,
 				HttpOnly: true,
-				SameSite: http.SameSiteStrictMode,
 			})
 		}
 

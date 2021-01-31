@@ -5,6 +5,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/diamondburned/arikawa/v2/state"
 	"github.com/diamondburned/csufbot/internal/csufbot"
@@ -20,12 +23,28 @@ import (
 // Templater is the global template tree.
 var Templater = tmplutil.Templater{
 	Includes: map[string]string{
-		"css":    "components/css.html",
-		"header": "components/header.html",
-		"footer": "components/footer.html",
+		"css":      "components/css.html",
+		"errorbox": "components/errorbox.html",
+		"header":   "components/header.html",
+		"footer":   "components/footer.html",
 	},
 	Functions: template.FuncMap{
 		"humanizeTime": humanize.Time,
+		"shortError": func(err error) string {
+			parts := strings.Split(err.Error(), ": ")
+			if len(parts) == 0 {
+				return ""
+			}
+
+			part := parts[len(parts)-1]
+
+			r, sz := utf8.DecodeRuneInString(part)
+			if sz == 0 {
+				return ""
+			}
+
+			return string(unicode.ToUpper(r)) + part[sz:] + "."
+		},
 	},
 }
 

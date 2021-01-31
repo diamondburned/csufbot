@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/diamondburned/arikawa/v2/discord"
+	"github.com/diamondburned/csufbot/internal/csufbot"
 	"github.com/diamondburned/csufbot/internal/lms"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
@@ -24,7 +25,7 @@ const (
 func Mount() http.Handler {
 	r := chi.NewRouter()
 
-	r.Route("{guildID}", func(r chi.Router) {
+	r.Route("/{guildID}", func(r chi.Router) {
 		r.Use(oauth.Require)
 		r.Use(adminOnly)
 
@@ -42,7 +43,8 @@ func guildID(r *http.Request) discord.GuildID {
 type chooseCoursesData struct {
 	web.RenderConfig
 	routeData
-	Courses []lms.Course
+	CourseMap map[lms.CourseID]csufbot.Course
+	Services  []csufbot.UserInService
 }
 
 func chooseCourses(w http.ResponseWriter, r *http.Request) {
@@ -56,16 +58,27 @@ func chooseCourses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := cfg.Courses.Courses(u.Enrolled...)
+	var courseIDs = make([]lms.CourseID, 0, 10)
+	for _, svc := range u.Services {
+		courseIDs = append(courseIDs, svc.Enrolled...)
+	}
+
+	c, err := cfg.Courses.Courses(courseIDs...)
 	if err != nil {
 		// Database contains invalid courses for some reason.
 		w.WriteHeader(500)
 		return
 	}
 
+	var courseMap = make(map[lms.CourseID]csufbot.Course, len(c))
+	for _, course := range c {
+		courseMap[course.ID] = course
+	}
+
 	courses.Execute(w, chooseCoursesData{
 		RenderConfig: cfg,
 		routeData:    routeData,
-		Courses:      c,
+		CourseMap:    courseMap,
+		Services:     u.Services,
 	})
 }

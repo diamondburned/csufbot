@@ -1,0 +1,8 @@
+div.loading.loading-xl {
+	width:  64px;
+	height: 64px;
+}
+
+p.error > span.error-prefix {
+	font-weight: bold;
+}

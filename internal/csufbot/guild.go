@@ -22,6 +22,9 @@ type GuildStorer interface {
 	// to a role. The courses must already be added into the database through
 	// CourseStorer.
 	AddCourses(guild discord.GuildID, courses map[lms.CourseID]discord.RoleID) error
+	// GuildCourses searches for the enrolled courses of each guild. It writes
+	// directly to the given output map.
+	GuildCourses(out map[discord.GuildID][]Course) error
 }
 
 // CourseMap constructs a backwards-lookup map to look up courses from roles.

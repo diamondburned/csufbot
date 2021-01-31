@@ -11,6 +11,8 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-chi/chi v1.5.1
 	github.com/harrybrwn/go-canvas v0.0.1
+	github.com/hexops/autogold v1.2.0
+	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/pelletier/go-toml v1.8.1
 	github.com/phogolabs/parcello v0.8.2
 	github.com/pkg/errors v0.9.1

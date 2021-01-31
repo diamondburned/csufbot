@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<title>Syncing - CSUFBot</title>
+
+{{ template "css" . }}
+
+<div class="card" id="syncing-loading">
+	<div class="card-image">
+		<div class="loading loading-lg"></div>
+	</div>
+	<div class="card-header">
+		<div class="card-title h5">We're processing, hang on...</div>
+	</div>
+</div>
+
+{{ $err := (.Wait) }}
+
+<style>
+	#syncing-loading { display: none }
+</style>
+
+{{ with $err }}
+<div class="card" id="sync-error">
+	<div class="card-image">
+		<i class="icon icon-4x icon-check text-success"></i>
+	</div>
+	<div class="card-header">
+		{{ template "errorbox" . }}
+	</div>
+</div>
+{{ else }}
+<div class="card" id="sync-success">
+	<div class="card-image">
+		<i class="icon icon-4x icon-check text-success"></i>
+	</div>
+	<div class="card-header">
+		<div class="card-title h5">Success!</div>
+		<div class="card-subtitle">You can close this tab now.</div>
+	</div>
+</div>
+{{ end }}
