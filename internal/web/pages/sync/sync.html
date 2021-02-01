@@ -1,82 +1,77 @@
 <!DOCTYPE html>
-<title>Sync - CSUFBot</title>
+<title>Sync - {{.SiteName}}</title>
 
 {{ template "css" . }}
+{{ template "header" . }}
 
-{{ $me := (.Me) }}
+<div class="sync">
+	{{ $me := (.Me) }}
 
-{{ with $me }}
-<div class="container grid-sm discord-info">
-	<div class="user">
-		<figure class="avatar avatar-xl">
-			<img
-				src="{{ .AvatarURL }}?size=64"
-				alt="Avatar"
-			>
-		</figure>
-		<div class="name">
-			<span class="username">{{ .Username }}</span>
-			<small class="discriminator">#{{.Discriminator}}</small>
+	{{ with $me }}
+	<div class="discord-info">
+		<div class="user">
+			<img class="avatar avatar-xxl" src="{{ .AvatarURL }}?size=128" alt="Avatar">
+			<div class="name">
+				<span class="username">{{ .Username }}</span>
+				<small class="discriminator">#{{.Discriminator}}</small>
+			</div>
 		</div>
 	</div>
-</div>
-{{ end }}
+	{{ end }}
 
-{{ $user   := (.User $me.ID) }}
-{{ $guilds := (.GuildsInService) }}
+	{{ $user   := (.User $me.ID) }}
+	{{ $guilds := (.GuildsInServices) }}
 
-<div class="container grid-xl">
-	<h3>Linking</h3>
+	<h3 id="synchronize-header">
+		Synchronize
+		<small>Update the courses linked to your account.</small>
+	</h3>
 
-	<div class="columns">
+	<div class="row">
 		{{ range .Services }}
-		<a class="card column col-xs-12 col-md-6 col-4" href="/{{.NameHash}}">
-			<div class="card-header">
-				<div class="card-title h5">
-					<figure class="avatar avatar-sm">
-						<img src="{{ .Icon }}" alt="Icon">
-					</figure>
+		<a	class="service-card column col-sm-12 col-md-6"
+			href="/sync/{{.Host}}"
+		>
+			<div class="card fluid">
+				<h3 class="section">
+					<img class="avatar" src="{{ .Icon }}" alt="Icon">
 					<span>{{ .Name }}</span>
-				</div>
-				{{ if $user }}
-				{{ with ($user.LastSynced .Host) }}
-				<div class="card-subtitle">
-					Last synced
-					<time datetime="{{ .UTC.Format "2006-01-02T15:04:05Z" }}">
-						{{ humanizeTime . }}
-					</time>
-				</div>
-				{{ end }}
-				{{ end }}
-			</div>
-			<div class="card-body">
-				{{ if $guilds }}
-				{{ range (index $guilds .Host) }}
-				<div class="tile tile-centered">
-					<div class="tile-icon">
-						<figure class="avatar avatar-sm">
-							<img src="{{ .IconURL }}?size=32" alt="Guild Icon">
-						</figure>
-					</div>
-					<div class="tile-content">
-						<p class="tile-title">{{ .Name }}</p>
-						<p class="tile-subtitle">
+					{{ if $user }}
+					{{ with ($user.LastSynced .Host) }}
+					<small>
+						Last synced
+						<time datetime="{{ .UTC.Format "2006-01-02T15:04:05Z" }}">
+							{{ humanizeTime . }}
+						</time>
+					</small>
+					{{ end }}
+					{{ end }}
+				</h3>
+
+				<div class="section">
+					{{ range (index $guilds .Host) }}
+					<div class="service-guild">
+						<img
+							class="avatar avatar-xl" alt="Guild Icon"
+							src="{{ .IconURL }}?size=128"
+						>
+						<div class="guild-info">
+							<h5>{{ .Name }}</h5>
 							<ul>
 								{{ range .Courses }}
 								<li id="{{ .ID }}">{{ .Name }}</li>
 								{{ end }}
 							</ul>
-						</p>
+						</div>
 					</div>
+					{{ else }}
+					<div class="empty">No known guilds.</div>
+					{{ end }}
 				</div>
-				{{ else }}
-				<div class="empty">
-					<div class="empty-title h6">No known guilds.</div>
-				</div>
-				{{ end }}
-				{{ end }}
 			</div>
 		</a>
 		{{ end }}
 	</div>
 </div>
+
+{{ template "footer" . }}

@@ -2,55 +2,59 @@
 <title>{{ .Service.Name }} - CSUFBot</title>
 
 {{ template "css" . }}
+{{ template "header" . }}
 
-{{ $me := (.Me) }}
-<div class="container grid-sm svc-sync-info">
-	<div class="user">
-		<figure class="avatar avatar-xl">
-			<img src="{{ $me.AvatarURL }}?size=64" alt="{{ $me.Username }}">
-		</figure>
+<div class="service-page stretch" style="max-width: 400px">
+	{{ $me := (.Me) }}
+	<div class="svc-sync-info">
+		<div class="user">
+			<img
+				class="avatar avatar-xxl" alt="{{ $me.Username }}"
+				src="{{ $me.AvatarURL }}?size=64"
+			>
+		</div>
+		<span class="mid-ellipsis">● ● ●</span>
+		<div class="service">
+			<img
+				class="avatar avatar-xxl" alt="{{ .Service.Name }}"
+				src="{{ .Service.Icon }}"
+			>
+		</div>
 	</div>
-	<i class="icon icon-4x icon-more-horiz"></i>
-	<div class="service">
-		<figure class="avatar avatar-xl">
-			<img src="{{ .Service.Icon }}" alt="{{ .Service.Name }}">
-		</figure>
-	</div>
+
+	<form method="post" id="token-form" class="card fluid">
+		<h3>
+			<small>{{ .Service.Name }}</small>
+			Token
+		</h3>
+
+		<input type="password" name="token">
+
+		<label
+			class="switch tooltip"
+			aria-label="Do not set the token to expire when enabling this."
+		>
+			<input type="checkbox" id="remember" name="remember" value="1">
+			<span class="slider"></span>
+			Remember my token
+		</label>
+
+		<div class="buttons">
+			{{ with .Service.Instruction }}
+			<label for="instruction-modal" role="button">How?</label>
+			<input type="checkbox" id="instruction-modal" class="modal">
+			<div role="dialog" aria-labelledby="instruction-modal-title">
+				<div class="card large instructions">
+					<label for="instruction-modal" class="modal-close" aria-label="Close"></label>
+					<h3 class="section" id="instruction-modal-title">Instructions</h3>
+					<div class="section">{{ . }}</div>
+				</div>
+			</div>
+			{{ end }}
+
+			<input type="submit" value="Sync" class="primary">
+		</div>
+	</form>
 </div>
 
-<div class="container grid-sm">
-	<div class="card">
-		<div class="card-header">
-			<div class="card-title h5">
-				Enter your Token
-			</div>
-			<div class="card-subtitle">
-				for {{ .Service.Name }}
-			</div>
-		</div>
-		<div class="card-body">
-			<form method="post" id="token-form">
-				<div class="form-group">
-					<label class="form-label" for="token-input">Token</label>
-					<input class="form-input" id="token-input" type="password" placeholder="Token">
-				</div>
-				<div class="form-group">
-					<label class="form-switch">
-						<input
-							type="checkbox tooltip"
-							data-tooltip="Do not set the token to expire when enabling this."
-						>
-						<i class="form-icon"></i> Remember my token
-					</label>
-					<input type="submit" value="Sync">
-				</div>
-			</form>
-		</div>
-		{{ with .Service.Instructions }}
-		<div class="footer">
-			<h5>Instructions</h5>
-			<p>{{ . }}</p>
-		</div>
-		{{ end }}
-	</div>
-</div>
+{{ template "footer" . }}

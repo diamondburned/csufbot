@@ -10,6 +10,7 @@ import (
 	"github.com/diamondburned/csufbot/internal/csufbot"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/diamondburned/csufbot/internal/web/pages"
+	"github.com/diamondburned/tmplutil"
 	"github.com/go-chi/chi"
 )
 
@@ -18,6 +19,8 @@ var (
 )
 
 func init() {
+	tmplutil.Log = true
+
 	flag.StringVar(&configFile, "c", configFile, "Path to the TOML config")
 	flag.Parse()
 }
@@ -28,10 +31,10 @@ func main() {
 		log.Fatalln("failed to get services:", err)
 	}
 
-	// 	storer, err := cfg.Session.Open()
-	// 	if err != nil {
-	// 		log.Fatalln("failed to open the session storer:", err)
-	// 	}
+	storer, err := cfg.Database.Open()
+	if err != nil {
+		log.Fatalln("failed to open the session storer:", err)
+	}
 
 	d, err := cfg.Discord.Open()
 	if err != nil {
@@ -39,25 +42,19 @@ func main() {
 	}
 	defer d.Close()
 
-	storer := newMockStorer()
-	storer.addUsers([]csufbot.User{
-		{
-			ID:       170132746042081280,
-			Services: []csufbot.UserInService{},
-		},
-	})
-
 	r := chi.NewRouter()
 	r.Mount("/static", web.MountStatic())
 	r.Mount("/", pages.Mount(web.RenderConfig{
-		HTTPS:    cfg.HTTP.HTTPS,
-		Services: cfg.Services.WebServices(),
-		Discord:  d,
-		Store:    csufbot.Store{},
+		HTTPS:      cfg.Site.HTTPS,
+		SiteName:   cfg.Site.SiteName,
+		Disclaimer: cfg.Site.Disclaimer,
+		Services:   cfg.Services.WebServices(),
+		Discord:    d,
+		Store:      storer,
 	}))
 
-	log.Println("Listen and serve at", cfg.HTTP.Address)
-	log.Fatalln(http.ListenAndServe(cfg.HTTP.Address, r))
+	log.Println("Listen and serve at", cfg.Site.Address)
+	log.Fatalln(http.ListenAndServe(cfg.Site.Address, r))
 }
 
 type mockStorer struct {

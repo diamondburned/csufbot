@@ -8,8 +8,6 @@ import (
 // Guild contains per-guild relationships.
 type Guild struct {
 	ID discord.GuildID
-	// Courses contains a list of course IDs that the guild is for.
-	Courses []lms.CourseID
 	// RoleMap maps each course to its appropriate role.
 	RoleMap map[lms.CourseID]discord.RoleID
 }
@@ -21,10 +19,10 @@ type GuildStorer interface {
 	// AddCourses adds courses into the guild wherein each course must be mapped
 	// to a role. The courses must already be added into the database through
 	// CourseStorer.
-	AddCourses(guild discord.GuildID, courses map[lms.CourseID]discord.RoleID) error
+	SetCourses(guild discord.GuildID, roleMap map[lms.CourseID]discord.RoleID) error
 	// GuildCourses searches for the enrolled courses of each guild. It writes
 	// directly to the given output map.
-	GuildCourses(out map[discord.GuildID][]Course) error
+	GuildCourses(courses CourseStorer, out map[discord.GuildID][]Course) error
 }
 
 // CourseMap constructs a backwards-lookup map to look up courses from roles.

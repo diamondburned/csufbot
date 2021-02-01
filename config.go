@@ -20,7 +20,7 @@ import (
 
 // Config is the application configuration.
 type Config struct {
-	HTTP     HTTPConfig     `toml:"http"`
+	Site     SiteConfig     `toml:"site"`
 	Discord  DiscordConfig  `toml:"discord"`
 	Database DatabaseConfig `toml:"database"`
 	Services Services       `toml:"services"`
@@ -66,10 +66,13 @@ func (cfg *Config) FromFile(file string) error {
 	return nil
 }
 
-// HTTPConfig describes the configuration for the HTTP server.
-type HTTPConfig struct {
+// SiteConfig describes the configuration for the HTTP server.
+type SiteConfig struct {
 	Address string `toml:"address"`
 	HTTPS   bool   `toml:"https"`
+
+	SiteName   string `toml:"site_name"`
+	Disclaimer string `toml:"disclaimer"`
 }
 
 // DiscordConfig describes the configuration for the Discord bot.
@@ -101,27 +104,21 @@ func (dcfg DiscordConfig) Open() (web.DiscordState, error) {
 // DatabaseConfig describes the configuration for the underlying database
 // storage.
 type DatabaseConfig struct {
-	Database string `toml:"database"`
-	Address  string `toml:"address"`
+	Name    string `toml:"name"`
+	Address string `toml:"address"`
 }
 
 // Open opens a new session storer from the given SessionConfig.
 func (dbcfg DatabaseConfig) Open() (store csufbot.Store, err error) {
-	switch dbcfg.Database {
+	switch dbcfg.Name {
 	case "badger":
-		_, err := badger.Open(dbcfg.Address)
-		if err != nil {
-			return store, errors.Wrap(err, "failed to open badger")
-		}
-
-		store = csufbot.Store{}
-
+		store, err = badger.New(dbcfg.Address)
 	case "sqlite":
 		panic("TODO")
 	case "pgx":
 		panic("TODO")
 	default:
-		err = fmt.Errorf("unknown database %q", dbcfg.Database)
+		err = fmt.Errorf("unknown database %q", dbcfg.Name)
 	}
 
 	return

@@ -32,7 +32,7 @@ func Mount(paramName string) http.Handler {
 func needService(name string) web.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			serviceHost := lms.Host(chi.URLParam(r, "serviceHost"))
+			serviceHost := lms.Host(chi.URLParam(r, name))
 
 			cfg := web.GetRenderConfig(r.Context())
 			svc := cfg.FindService(serviceHost)

@@ -3,7 +3,6 @@
 package sync
 
 import (
-	"log"
 	"net/http"
 	"sort"
 
@@ -68,7 +67,7 @@ func guildsInServices(guilds []discord.Guild, cfg web.RenderConfig) map[lms.Host
 		guildIDCourses[guild.ID] = nil
 	}
 
-	if err := cfg.Guilds.GuildCourses(guildIDCourses); err != nil {
+	if err := cfg.Guilds.GuildCourses(cfg.Courses, guildIDCourses); err != nil {
 		return nil
 	}
 
@@ -116,12 +115,8 @@ func guildsInServices(guilds []discord.Guild, cfg web.RenderConfig) map[lms.Host
 }
 
 func render(w http.ResponseWriter, r *http.Request) {
-	err := sync.Execute(w, syncData{
+	sync.Execute(w, syncData{
 		RenderConfig: web.GetRenderConfig(r.Context()),
 		Client:       oauth.Client(r.Context()),
 	})
-
-	if err != nil {
-		log.Println("failed to render:", err)
-	}
 }

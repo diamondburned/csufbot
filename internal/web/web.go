@@ -70,7 +70,10 @@ func NewLMSService(svc lms.Service, instruction string) LMSService {
 
 // RenderConfig is the config to render with.
 type RenderConfig struct {
-	HTTPS    bool
+	HTTPS      bool
+	SiteName   string
+	Disclaimer string
+
 	Services []LMSService
 
 	csufbot.Store

@@ -1,6 +1,12 @@
-[http]
+[site]
 address = ":8081" # TODO: unix socket
 https = false # used for OAuth redirection; optional if autoredirect
+
+site_name = "CSUFBot"
+disclaimer = '''
+	This website is not endorsed by, directly affiliated with, maintained,
+	authorized, or sponsored by California State University, Fullerton.
+'''
 
 [discord]
 token = ""
@@ -13,61 +19,127 @@ address = "/path/to/db"
 [[services.canvas]]
 name = "Canvas"
 host = "csufullerton.instructure.com"
-instructions = """
-<h3>To obtain the token, do:</h3>
+instruction = '''
+	<h4>To obtain the token, do:</h4>
+	
+	<ol>
+	
+	<li>
+		Head to
+		<a href="https://csufullerton.instructure.com/profile/settings">
+			Canvas Profile Settings
+		</a>.
+	</li>
+	
+	<li>
+		Scroll down to "Approved Integrations" and click "New Access Token."
+		<img alt="Step 1 and 2" src="/static/instruction/canvas/step12.jpg">
+	</li>
+	
+	<li>
+		Write "Discord Auth" for Purpose, optionally set an "Expires" date to the
+		future and click Generate Token.
+		<img alt="Step 3" src="/static/instruction/canvas/step3.jpg">
+	</li>
+	
+	<li>
+		Copy the "Token" and paste it into this page.
+		<img alt="Step 4" src="/static/instruction/canvas/step4.jpg">
+	</li>
+	
+	</ol>
+'''
 
-<ol>
-
-<li>
-	Head to
-	<a href="https://csufullerton.instructure.com/profile/settings">
-		Canvas Profile Settings
-	</a>.
-</li>
-
-<li>
-	Scroll down to "Approved Integrations" and click "New Access Token."
-</li>
-
-<li>
-	Write "Discord Auth" for Purpose, optionally set an "Expires" date to the
-	future and click Generate Token.
-</li>
-
-<li>
-	Copy the "Token" and paste it into this page.
-</li>
-
-</ol>
-"""
 
 [[services.moodle]]
 name = "TITANium Communities"
 host = "communities.fullerton.edu"
-instruction = """
-<h3>To obtain the token, do:</h3>
+instruction = '''
+	<h4>To obtain the token, do:</h4>
+	
+	<ol>
+	
+	<li>
+		Go to <a href="https://my.fullerton.edu">my.fullerton.edu</a> and log in.
+	</li>
+	
+	<li>
+		After logging in, head to
+		<a href="https://communities.fullerton.edu/user/preferences.php">
+			TITANium Communities Preferences
+		</a>.
+	</li>
+	
+	<li>
+		Under the "User account" section, go to "Security keys".
+	</li>
+	
+	<li>
+		Find the "Moodle mobile web service" Service and copy its key (to the left)
+		into this page.
+	</li>
+	
+	</ol>
+'''
 
-<ol>
+[[services.moodle]]
+name = "TITANium 2020 to 2021"
+host = "moodle-2020-2021.fullerton.edu"
+instruction = '''
+	<h4>To obtain the token, do:</h4>
+	
+	<ol>
+	
+	<li>
+		Go to <a href="https://my.fullerton.edu">my.fullerton.edu</a> and log in.
+	</li>
+	
+	<li>
+		After logging in, head to
+		<a href="https://moodle-2020-2021.fullerton.edu/user/preferences.php">
+			TITANium Communities Preferences
+		</a>.
+	</li>
+	
+	<li>
+		Under the "User account" section, go to "Security keys".
+	</li>
+	
+	<li>
+		Find the "Moodle mobile web service" Service and copy its key (to the left)
+		into this page.
+	</li>
+	
+	</ol>
+'''
 
-<li>
-	Go to <a href="https://my.fullerton.edu">my.fullerton.edu</a> and log in.
-</li>
-
-<li>
-	After logging in, head to
-	<a href="https://communities.fullerton.edu/user/preferences.php">
-		TITANium Communities Preferences
-	</a>.
-</li>
-
-<li>
-	Under the "User account" section, go to "Security keys".
-</li>
-
-<li>
-	Find the "Moodle mobile web service" Service and copy its key (to the left)
-	into this page.
-</li>
-
-</ol>
-"""
+[[services.moodle]]
+name = "TITANium 2019 to 2020"
+host = "moodle-2019-2020.fullerton.edu"
+instruction = '''
+	<h4>To obtain the token, do:</h4>
+	
+	<ol>
+	
+	<li>
+		Go to <a href="https://my.fullerton.edu">my.fullerton.edu</a> and log in.
+	</li>
+	
+	<li>
+		After logging in, head to
+		<a href="https://moodle-2019-2020.fullerton.edu/user/preferences.php">
+			TITANium Communities Preferences
+		</a>.
+	</li>
+	
+	<li>
+		Under the "User account" section, go to "Security keys".
+	</li>
+	
+	<li>
+		Find the "Moodle mobile web service" Service and copy its key (to the left)
+		into this page.
+	</li>
+	
+	</ol>
+'''

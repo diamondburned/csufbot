@@ -58,21 +58,16 @@ func chooseCourses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var courseIDs = make([]lms.CourseID, 0, 10)
+	var courseMap = make(map[lms.CourseID]csufbot.Course, 10)
 	for _, svc := range u.Services {
-		courseIDs = append(courseIDs, svc.Enrolled...)
+		for _, id := range svc.Enrolled {
+			courseMap[id] = csufbot.Course{}
+		}
 	}
 
-	c, err := cfg.Courses.Courses(courseIDs...)
-	if err != nil {
-		// Database contains invalid courses for some reason.
+	if err := cfg.Courses.Courses(courseMap); err != nil {
 		w.WriteHeader(500)
 		return
-	}
-
-	var courseMap = make(map[lms.CourseID]csufbot.Course, len(c))
-	for _, course := range c {
-		courseMap[course.ID] = course
 	}
 
 	courses.Execute(w, chooseCoursesData{

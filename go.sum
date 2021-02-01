@@ -80,6 +80,8 @@ github.com/diamondburned/arikawa/v2 v2.0.1 h1:SCJB6YpMAxILns/E6aOOtotlSy+NZtlmyv
 github.com/diamondburned/arikawa/v2 v2.0.1/go.mod h1:e+lhS20ni2luFEU06Pc8paCxgZL99/RZb77dOC82CF0=
 github.com/diamondburned/tmplutil v0.0.0-20210126055613-f434a35f203a h1:eYSNOnSBLNdWw8apJWfkHHJh4D6rz+pQZgnPzDmxQZ8=
 github.com/diamondburned/tmplutil v0.0.0-20210126055613-f434a35f203a/go.mod h1:SHl/HH2rMz2OymGoDl+nlzku0G3NSV7wRag5TcrUBns=
+github.com/diamondburned/tmplutil v0.0.0-20210131222542-eb3ba5ad7fdc h1:kDfrg0pKPWHY7bNiI/X2VG5bG4jfQSJ2fCz6RacQdRk=
+github.com/diamondburned/tmplutil v0.0.0-20210131222542-eb3ba5ad7fdc/go.mod h1:SHl/HH2rMz2OymGoDl+nlzku0G3NSV7wRag5TcrUBns=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=

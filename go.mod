@@ -7,7 +7,7 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2011.1
 	github.com/diamondburned/arikawa v1.3.14
 	github.com/diamondburned/arikawa/v2 v2.0.1
-	github.com/diamondburned/tmplutil v0.0.0-20210126055613-f434a35f203a
+	github.com/diamondburned/tmplutil v0.0.0-20210131222542-eb3ba5ad7fdc
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-chi/chi v1.5.1
 	github.com/harrybrwn/go-canvas v0.0.1

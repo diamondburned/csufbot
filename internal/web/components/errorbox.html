@@ -1,9 +1,10 @@
-<div class="popover popover-bottom">
-	<p class="error text-error">
-		<span class="error-prefix text-error">Error:</span>
-		<span>{{ shortError . }}</span>
-	</p>
-	<div class="popover-container">
-		<pre class="code">{{ .Error }}</pre>
+<label for="error-dialog">{{ shortError . }}</label>
+
+<input type="checkbox" id="error-dialog" class="modal">
+<div role="dialog" aria-lebelledby="error-dialog-title">
+	<div class="card error">
+		<label for="error-dialog" class="modal-close"></label>
+		<h3 class="section" id="error-dialog-title">Full Error</h3>
+		<pre class="section">{{ .Error }}</p>
 	</div>
 </div>
