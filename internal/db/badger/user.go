@@ -3,7 +3,8 @@ package badger
 import (
 	"github.com/dgraph-io/badger/v3"
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/csufbot"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/pkg/errors"
 )
 
 type UserStore struct {
@@ -21,7 +22,12 @@ func (store *UserStore) Sync(id discord.UserID, new csufbot.UserInService) error
 
 	return store.db.Update(func(txn *badger.Txn) error {
 		if err := unmarshalFromTxn(txn, keyBuf, &user); err != nil {
-			return err
+			if !errors.Is(err, badger.ErrKeyNotFound) {
+				return errors.Wrap(err, "failed to get previous user state")
+			}
+
+			// Initialize a new user.
+			user = &csufbot.User{ID: id}
 		}
 
 		var found bool

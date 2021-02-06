@@ -1,12 +1,12 @@
-package pages
+package routes
 
 import (
 	"net/http"
 
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/pages/admin"
-	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
-	"github.com/diamondburned/csufbot/internal/web/pages/sync"
+	"github.com/diamondburned/csufbot/internal/web/routes/admin"
+	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
+	"github.com/diamondburned/csufbot/internal/web/routes/sync"
 	"github.com/go-chi/chi"
 )
 

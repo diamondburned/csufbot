@@ -3,8 +3,8 @@ package badger
 import (
 	"github.com/dgraph-io/badger/v3"
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/csufbot"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/pkg/errors"
 )
 
@@ -23,7 +23,11 @@ func (store *GuildStore) SetCourses(g discord.GuildID, cs map[lms.CourseID]disco
 
 	return store.db.Update(func(txn *badger.Txn) error {
 		if err := unmarshalFromTxn(txn, key, &guild); err != nil {
-			return err
+			if !errors.Is(err, badger.ErrKeyNotFound) {
+				return errors.Wrap(err, "failed to get previous guild state")
+			}
+
+			guild = &csufbot.Guild{ID: g}
 		}
 
 		guild.RoleMap = cs

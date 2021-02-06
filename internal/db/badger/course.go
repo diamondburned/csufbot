@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/dgraph-io/badger/v3"
-	"github.com/diamondburned/csufbot/internal/csufbot"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/pkg/errors"
 )
 

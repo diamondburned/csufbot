@@ -10,8 +10,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/diamondburned/arikawa/v2/state"
-	"github.com/diamondburned/csufbot/internal/csufbot"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/tmplutil"
 	"github.com/phogolabs/parcello"
 
@@ -70,7 +70,7 @@ func NewLMSService(svc lms.Service, instruction string) LMSService {
 
 // RenderConfig is the config to render with.
 type RenderConfig struct {
-	HTTPS      bool
+	FrontURL   string
 	SiteName   string
 	Disclaimer string
 

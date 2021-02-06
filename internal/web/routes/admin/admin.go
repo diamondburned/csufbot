@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/csufbot"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
+	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/go-chi/chi"
 )
 

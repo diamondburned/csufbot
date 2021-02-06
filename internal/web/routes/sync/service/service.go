@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
+	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
+	"github.com/diamondburned/tmplutil"
 	"github.com/go-chi/chi"
 )
 
@@ -22,6 +23,7 @@ var service = web.Templater.Register("service", "pages/sync/service/service.html
 
 func Mount(paramName string) http.Handler {
 	r := chi.NewRouter()
+	r.Use(tmplutil.AlwaysFlush)
 	r.Use(needService(paramName))
 	r.Get("/", renderServiceSync)
 	r.Post("/", postSync)

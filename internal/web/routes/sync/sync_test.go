@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/csufbot"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/hexops/autogold"
 )

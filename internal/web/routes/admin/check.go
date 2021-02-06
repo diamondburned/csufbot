@@ -7,7 +7,7 @@ import (
 
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
+	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 )
 
 // routeData contains data that follows after the admin check and contains

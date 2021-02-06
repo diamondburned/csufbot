@@ -3,7 +3,6 @@ package oauth
 import (
 	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/diamondburned/csufbot/internal/web"
 	"golang.org/x/oauth2"
@@ -30,21 +29,11 @@ func config(r *http.Request) oauth2.Config {
 		log.Panicln("failed to bot information:", err)
 	}
 
-	u := url.URL{
-		Scheme: "http",
-		Host:   r.Host,
-		Path:   "/oauth/redirect",
-	}
-
-	if cfg.HTTPS {
-		u.Scheme = "https"
-	}
-
 	return oauth2.Config{
 		ClientID:     me.ID.String(),
 		ClientSecret: cfg.Discord.Secret,
 		Endpoint:     endpoint,
-		RedirectURL:  u.String(),
+		RedirectURL:  cfg.FrontURL + "/oauth/redirect",
 		Scopes:       oauthScopes,
 	}
 }

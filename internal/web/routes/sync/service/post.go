@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/diamondburned/csufbot/internal/csufbot"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
+	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/pkg/errors"
 )
 
@@ -39,7 +39,8 @@ func postSync(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (d *postSyncData) Wait() error {
+func (d postSyncData) Wait() error {
+	time.Sleep(5 * time.Second)
 	return <-d.done
 }
 

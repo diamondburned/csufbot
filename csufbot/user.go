@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 )
 
 // User describes per-user data and relationships. Note that a user does not

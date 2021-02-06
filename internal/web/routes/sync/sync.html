@@ -33,20 +33,27 @@
 			href="/sync/{{.Host}}"
 		>
 			<div class="card fluid">
-				<h3 class="section">
+				<div class="section">
 					<img class="avatar" src="{{ .Icon }}" alt="Icon">
-					<span>{{ .Name }}</span>
-					{{ if $user }}
-					{{ with ($user.LastSynced .Host) }}
-					<small>
-						Last synced
-						<time datetime="{{ .UTC.Format "2006-01-02T15:04:05Z" }}">
-							{{ humanizeTime . }}
-						</time>
-					</small>
-					{{ end }}
-					{{ end }}
-				</h3>
+					<h3>
+						<span>{{ .Name }}</span>
+
+						{{ if $user }}
+						{{ with ($user.LastSynced .Host) }}
+						<small>
+							{{ if not .IsZero }}
+							Last synced
+							<time datetime="{{ .UTC.Format "2006-01-02T15:04:05Z" }}">
+								{{ humanizeTime . }}
+							</time>
+							{{ else }}
+							<span>Never synced before</span>
+							{{ end }}
+						</small>
+						{{ end }}
+						{{ end }}
+					</h3>
+				</div>
 
 				<div class="section">
 					{{ range (index $guilds .Host) }}
@@ -65,7 +72,9 @@
 						</div>
 					</div>
 					{{ else }}
-					<div class="empty">No known guilds.</div>
+					<div class="empty">
+						<small>Nothing here, yet.</small>
+					</div>
 					{{ end }}
 				</div>
 			</div>

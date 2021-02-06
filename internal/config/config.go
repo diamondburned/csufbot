@@ -1,17 +1,15 @@
-package main
+package config
 
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"sort"
 
 	"github.com/diamondburned/arikawa/v2/gateway"
 	"github.com/diamondburned/arikawa/v2/state"
-	"github.com/diamondburned/csufbot/internal/csufbot"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms/canvas"
+	"github.com/diamondburned/csufbot/csufbot/lms/moodle"
 	"github.com/diamondburned/csufbot/internal/db/badger"
-	"github.com/diamondburned/csufbot/internal/lms/canvas"
-	"github.com/diamondburned/csufbot/internal/lms/moodle"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/pkg/errors"
 
@@ -24,31 +22,6 @@ type Config struct {
 	Discord  DiscordConfig  `toml:"discord"`
 	Database DatabaseConfig `toml:"database"`
 	Services Services       `toml:"services"`
-}
-
-func configFromGlob(glob string) (*Config, error) {
-	files, err := filepath.Glob(glob)
-	if err != nil {
-		return nil, errors.Wrap(err, "glob failed")
-	}
-
-	sort.Slice(files, func(i, j int) bool {
-		// Parse files with shorter names first.
-		if len(files[i]) != len(files[j]) {
-			return len(files[i]) < len(files[j])
-		}
-		// Otherwise, sort alphanumerically.
-		return files[i] < files[j]
-	})
-
-	var cfg Config
-	for _, file := range files {
-		if err := cfg.FromFile(file); err != nil {
-			return nil, errors.Wrapf(err, "failed to parse file %q", file)
-		}
-	}
-
-	return &cfg, nil
 }
 
 // FromFile parses the file and overrides the config.
@@ -68,8 +41,8 @@ func (cfg *Config) FromFile(file string) error {
 
 // SiteConfig describes the configuration for the HTTP server.
 type SiteConfig struct {
-	Address string `toml:"address"`
-	HTTPS   bool   `toml:"https"`
+	Address  string `toml:"address"`
+	FrontURL string `toml:"fronturl"`
 
 	SiteName   string `toml:"site_name"`
 	Disclaimer string `toml:"disclaimer"`
@@ -90,10 +63,6 @@ func (dcfg DiscordConfig) Open() (web.DiscordState, error) {
 
 	s.Gateway.AddIntents(gateway.IntentGuilds)
 	s.Gateway.AddIntents(gateway.IntentGuildMembers)
-
-	if err := s.Open(); err != nil {
-		return web.DiscordState{}, errors.Wrap(err, "failed to open")
-	}
 
 	return web.DiscordState{
 		State:  s,

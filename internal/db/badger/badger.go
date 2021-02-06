@@ -8,7 +8,7 @@ import (
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/dgraph-io/badger/v3/options"
-	"github.com/diamondburned/csufbot/internal/csufbot"
+	"github.com/diamondburned/csufbot/csufbot"
 )
 
 // Open opens a new Badger database.

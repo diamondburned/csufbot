@@ -7,11 +7,12 @@ import (
 	"sort"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/csufbot"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/pages/oauth"
-	"github.com/diamondburned/csufbot/internal/web/pages/sync/service"
+	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
+	"github.com/diamondburned/csufbot/internal/web/routes/sync/service"
+	"github.com/diamondburned/tmplutil"
 	"github.com/go-chi/chi"
 )
 
@@ -21,6 +22,7 @@ func Mount() http.Handler {
 	r := chi.NewRouter()
 	r.Group(func(r chi.Router) {
 		r.Use(oauth.Require)
+		r.Use(tmplutil.AlwaysFlush)
 
 		r.Get("/", render)
 		r.Mount("/{serviceHost}", service.Mount("serviceHost"))

@@ -4,14 +4,16 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"sync"
+	"path/filepath"
+	"sort"
 
-	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/csufbot"
+	"github.com/diamondburned/csufbot/internal/bot"
+	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/pages"
+	"github.com/diamondburned/csufbot/internal/web/routes"
 	"github.com/diamondburned/tmplutil"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -40,12 +42,17 @@ func main() {
 	if err != nil {
 		log.Fatalln("failed to open Discord:", err)
 	}
-	defer d.Close()
+
+	b, err := bot.Start(d.State, storer)
+	if err != nil {
+		log.Fatalln("failed to create bot:", err)
+	}
+	defer b.CloseGracefully()
 
 	r := chi.NewRouter()
 	r.Mount("/static", web.MountStatic())
-	r.Mount("/", pages.Mount(web.RenderConfig{
-		HTTPS:      cfg.Site.HTTPS,
+	r.Mount("/", routes.Mount(web.RenderConfig{
+		FrontURL:   cfg.Site.FrontURL,
 		SiteName:   cfg.Site.SiteName,
 		Disclaimer: cfg.Site.Disclaimer,
 		Services:   cfg.Services.WebServices(),
@@ -57,19 +64,27 @@ func main() {
 	log.Fatalln(http.ListenAndServe(cfg.Site.Address, r))
 }
 
-type mockStorer struct {
-	mutex sync.Mutex
-	users map[discord.UserID]csufbot.User
-}
-
-func newMockStorer() *mockStorer {
-	return &mockStorer{
-		users: map[discord.UserID]csufbot.User{},
+func configFromGlob(glob string) (*config.Config, error) {
+	files, err := filepath.Glob(glob)
+	if err != nil {
+		return nil, errors.Wrap(err, "glob failed")
 	}
-}
 
-func (s *mockStorer) addUsers(users []csufbot.User) {
-	for _, user := range users {
-		s.users[user.ID] = user
+	sort.Slice(files, func(i, j int) bool {
+		// Parse files with shorter names first.
+		if len(files[i]) != len(files[j]) {
+			return len(files[i]) < len(files[j])
+		}
+		// Otherwise, sort alphanumerically.
+		return files[i] < files[j]
+	})
+
+	var cfg config.Config
+	for _, file := range files {
+		if err := cfg.FromFile(file); err != nil {
+			return nil, errors.Wrapf(err, "failed to parse file %q", file)
+		}
 	}
+
+	return &cfg, nil
 }

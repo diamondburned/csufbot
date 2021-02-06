@@ -29,11 +29,34 @@ a {
 	vertical-align: bottom;
 }
 
+div.unicode-icon {
+	font-size: 3rem;
+}
+div.spinner.large {
+	width:  3rem;
+	height: 3rem;
+	border-width: 0.35rem;
+}
+
+div.card.success-border {
+	border: 2px solid #689f38;
+}
+div.card.error {
+	--card-back-color: unset;
+	--card-fore-color: var(--card-border-color);
+	color: unset;
+}
+
 img.logo {
 	width:  1.1em;
 	height: 1.1em;
 	border-radius: 50%;
 	vertical-align: middle;
+}
+
+input[type="text"],
+input[type="password"] {
+	margin: calc(var(--universal-margin) / 2) var(--universal-margin);
 }
 
 header {
@@ -85,9 +108,11 @@ div.empty {
 }
 
 div.card, form.card {
-	background: unset;
-	box-shadow: 0px 0px 6px -2px rgba(0,0,0,0.2);
+	box-shadow: 0px 0px 10px -2px rgba(0,0,0,0.35);
 	border-radius: 8px;
+}
+form.card {
+	background: unset;
 }
 
 p.error > span.error-prefix {
@@ -114,6 +139,16 @@ a.service-card div.card {
 a.service-card:hover div.card {
 	box-shadow: 0px 0px 6px -2px rgba(0,0,0,0.35);
 	border-color: #00000099;
+}
+
+a.service-card > div.card > div.section:first-child {
+	display: flex;
+}
+a.service-card > div.card > div.section:first-child h3 {
+	margin: 0 var(--universal-margin);
+}
+a.service-card > div.card > div.section:first-child small * {
+	font-size: unset;
 }
 
 div.sync div.user {
@@ -173,4 +208,39 @@ div.card.instructions img {
 	max-width:  400px;
 	max-height: 400px;
 	height: auto;
+}
+
+div.service-post {
+	height: 100vh;
+
+	display: flex;
+	align-items: stretch;
+	flex-direction: column;
+	justify-content: center;
+}
+
+div.service-post div.card {
+	padding: calc(var(--universal-margin) * 2) 0;
+}
+
+div.service-post > div:not(:last-child) {
+	display: none;
+}
+div.service-post > div:last-child {
+	display: flex;
+}
+
+div.service-post div.card,
+div.service-post div.invisible-wrapper {
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+}
+
+div.service-post > * {
+	margin: 0;
+}
+
+#sync-error label {
+	padding: 0;
 }

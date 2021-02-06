@@ -1,10 +1,11 @@
-package canvas
+package moodle
 
 import (
 	"strconv"
 
-	"github.com/diamondburned/csufbot/internal/lms"
-	"github.com/harrybrwn/go-canvas"
+	"github.com/diamondburned/csufbot/csufbot/lms"
+	"github.com/pkg/errors"
+	"github.com/zaddok/moodle"
 )
 
 type service struct {
@@ -15,12 +16,12 @@ type service struct {
 
 var _ lms.IconSetter = (*service)(nil)
 
-// New creates a new Canvas service.
+// New creates a new Moodle service.
 func New(name, host string) lms.Service {
 	return service{
 		name: name,
 		host: host,
-		icon: "https://du11hjcvx0uqb.cloudfront.net/br/dist/images/apple-touch-icon-585e5d997d.png",
+		icon: "https://moodle.com/wp-content/uploads/2019/03/cropped-FAV_icon-1-192x192.png",
 	}
 }
 
@@ -52,44 +53,59 @@ type tokenAuth struct {
 }
 
 func (auth tokenAuth) Authorize(token string) (lms.Session, error) {
-	c := canvas.WithHost(token, auth.host)
-	return session{c}, nil
+	m := moodle.NewMoodleApi(auth.host, token)
+
+	// I HATE MOODLE. I HATE PHP. I HATE EVERYTHING THAT PHP INFECTS.
+	_, _, _, userID, err := m.GetSiteInfo()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get info")
+	}
+
+	return session{m, userID}, nil
 }
 
 type session struct {
-	c *canvas.Canvas
+	m      *moodle.MoodleApi
+	userID int64
 }
 
 func (s session) User() (*lms.User, error) {
-	user, err := s.c.CurrentUser()
+	person, err := s.m.GetPersonByMoodleId(s.userID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &lms.User{
-		ID: lms.UserID(strconv.Itoa(user.ID)),
+		ID: lms.UserID(strconv.FormatInt(s.userID, 10)),
 		Name: lms.Name{
-			First:     user.Name,
-			Preferred: user.ShortName,
+			First: person.FirstName,
+			Last:  person.LastName,
 		},
-		Avatar: user.AvatarURL,
+		Avatar: person.ProfileImageUrl,
 	}, nil
 }
 
 func (s session) Courses() ([]lms.Course, error) {
-	courses, err := s.c.Courses()
+	courses, err := s.m.GetPersonCourseList(s.userID)
 	if err != nil {
 		return nil, err
 	}
 
 	var lmsCourses = make([]lms.Course, len(courses))
 	for i, course := range courses {
-		lmsCourses[i] = lms.Course{
-			ID:    lms.CourseID(strconv.Itoa(course.ID)),
-			Name:  course.Name,
-			Start: course.StartAt,
-			End:   course.EndAt,
+		lmsCourse := lms.Course{
+			ID:   lms.CourseID(strconv.FormatInt(course.MoodleId, 10)),
+			Name: course.Name,
 		}
+
+		if course.Start != nil {
+			lmsCourse.Start = *course.Start
+		}
+		if course.End != nil {
+			lmsCourse.End = *course.End
+		}
+
+		lmsCourses[i] = lmsCourse
 	}
 
 	return lmsCourses, nil

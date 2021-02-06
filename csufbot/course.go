@@ -1,7 +1,7 @@
 package csufbot
 
 import (
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 )
 
 // Course represents a course with a service host string attached to it to

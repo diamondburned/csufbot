@@ -2,7 +2,7 @@ package csufbot
 
 import (
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/internal/lms"
+	"github.com/diamondburned/csufbot/csufbot/lms"
 )
 
 // Guild contains per-guild relationships.

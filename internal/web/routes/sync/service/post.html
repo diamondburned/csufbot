@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<title>Syncing - CSUFBot</title>
+
+{{ template "css" . }}
+
+{{ $tick  := (printf "%s\uFE0E" "✅") }}
+{{ $cross := (printf "%s\uFE0E" "❌") }}
+
+<div class="service-post">
+	<div class="card" id="syncing-loading">
+		<div class="spinner large"></div>
+		<h3>We're processing, hang on...</h3>
+	</div>
+
+	{{ $err := (.Wait) }}
+
+	{{ with $err }}
+	<div class="invisible-wrapper">
+		<div class="card error" id="sync-error">
+			<div class="unicode-icon" aria-label="X symbol">{{ $cross }}</div>
+			<div>
+				<span>Error:</span>
+				{{ template "errorbox" . }}
+			</div>
+		</div>
+		<a href="">🡸 Go back</a>
+	</div>
+	{{ else }}
+	<div class="card large success-border" id="sync-success">
+		<div class="unicode-icon" aria-label="Tick symbol">{{ $tick }}</div>
+		<h3>
+			Done
+			<small>You can close this tab now.</small>
+		</h3>
+	</div>
+	{{ end }}
+</div>
