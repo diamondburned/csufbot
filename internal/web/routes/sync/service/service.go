@@ -19,7 +19,7 @@ const (
 	serviceCtxKey ctxKey = iota
 )
 
-var service = web.Templater.Register("service", "pages/sync/service/service.html")
+var service = web.Templater.Register("service", "routes//sync/service/service.html")
 
 func Mount(paramName string) http.Handler {
 	r := chi.NewRouter()

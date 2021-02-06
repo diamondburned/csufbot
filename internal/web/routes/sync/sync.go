@@ -16,7 +16,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
-var sync = web.Templater.Register("sync", "pages/sync/sync.html")
+var sync = web.Templater.Register("sync", "routes//sync/sync.html")
 
 func Mount() http.Handler {
 	r := chi.NewRouter()

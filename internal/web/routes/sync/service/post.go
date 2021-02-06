@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var post = web.Templater.Register("post", "pages/sync/service/post.html")
+var post = web.Templater.Register("post", "routes//sync/service/post.html")
 
 type postSyncData struct {
 	web.RenderConfig

@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	courses = web.Templater.Register("courses", "pages/admin/courses.html")
+	courses = web.Templater.Register("courses", "routes//admin/courses.html")
 )
 
 type ctxKey uint8
