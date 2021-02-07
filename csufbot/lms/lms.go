@@ -13,15 +13,7 @@ type Host string
 
 // Service describes an LMS service.
 type Service interface {
-	Name() string
-	Icon() string // URL
-	Host() Host
 	Authorize() AuthorizationMethods
-}
-
-// IconSetter is an interface for services to optionally implement.
-type IconSetter interface {
-	SetIcon(url string)
 }
 
 // AuthorizationMethods contains possible authorization methods supported by a

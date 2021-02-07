@@ -3,14 +3,15 @@ package main
 import (
 	"flag"
 	"log"
-	"net/http"
 	"path/filepath"
 	"sort"
+	"time"
 
 	"github.com/diamondburned/csufbot/internal/bot"
 	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/diamondburned/csufbot/internal/web/routes"
+	"github.com/diamondburned/gracehttp"
 	"github.com/diamondburned/tmplutil"
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
@@ -33,35 +34,32 @@ func main() {
 		log.Fatalln("failed to get services:", err)
 	}
 
-	storer, err := cfg.Database.Open()
-	if err != nil {
+	if err := cfg.Database.Open(); err != nil {
 		log.Fatalln("failed to open the session storer:", err)
 	}
+	defer cfg.Database.Close()
 
-	d, err := cfg.Discord.Open()
+	d, err := bot.Open(cfg)
 	if err != nil {
 		log.Fatalln("failed to open Discord:", err)
 	}
-
-	b, err := bot.Start(d.State, storer)
-	if err != nil {
-		log.Fatalln("failed to create bot:", err)
-	}
-	defer b.CloseGracefully()
+	defer d.Close()
 
 	r := chi.NewRouter()
 	r.Mount("/static", web.MountStatic())
 	r.Mount("/", routes.Mount(web.RenderConfig{
-		FrontURL:   cfg.Site.FrontURL,
-		SiteName:   cfg.Site.SiteName,
-		Disclaimer: cfg.Site.Disclaimer,
-		Services:   cfg.Services.WebServices(),
-		Discord:    d,
-		Store:      storer,
+		Store:    cfg.Database.Store,
+		Site:     cfg.Site,
+		Discord:  d,
+		Services: cfg.Services,
 	}))
 
 	log.Println("Listen and serve at", cfg.Site.Address)
-	log.Fatalln(http.ListenAndServe(cfg.Site.Address, r))
+
+	s := gracehttp.ListenAndServeAsync(cfg.Site.Address, r)
+	defer s.ShutdownTimeout(5 * time.Second)
+
+	gracehttp.WaitForInterrupt()
 }
 
 func configFromGlob(glob string) (*config.Config, error) {

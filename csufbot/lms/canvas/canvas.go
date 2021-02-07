@@ -8,37 +8,14 @@ import (
 )
 
 type service struct {
-	name string
 	host string
-	icon string
 }
-
-var _ lms.IconSetter = (*service)(nil)
 
 // New creates a new Canvas service.
-func New(name, host string) lms.Service {
+func New(host lms.Host) lms.Service {
 	return service{
-		name: name,
-		host: host,
-		icon: "https://du11hjcvx0uqb.cloudfront.net/br/dist/images/apple-touch-icon-585e5d997d.png",
+		host: string(host),
 	}
-}
-
-// SetIcon sets the icon. Make an IconSetter interface to access this method.
-func (svc *service) SetIcon(url string) {
-	svc.icon = url
-}
-
-func (svc service) Name() string {
-	return svc.name
-}
-
-func (svc service) Host() lms.Host {
-	return lms.Host(svc.host)
-}
-
-func (svc service) Icon() string {
-	return svc.icon
 }
 
 func (svc service) Authorize() lms.AuthorizationMethods {

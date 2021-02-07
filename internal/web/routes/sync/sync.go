@@ -81,7 +81,6 @@ func guildsInServices(guilds []discord.Guild, cfg web.RenderConfig) map[lms.Host
 	var hostGuilds = make(map[lms.Host][]guildCourses, len(cfg.Services))
 
 	for _, svc := range cfg.Services {
-		host := svc.Host()
 		guildCoursesList := make([]guildCourses, 0, len(guildIDCourses))
 
 		for guildID, courses := range guildIDCourses {
@@ -90,7 +89,7 @@ func guildsInServices(guilds []discord.Guild, cfg web.RenderConfig) map[lms.Host
 
 			var filterCourses = make([]csufbot.Course, 0, len(courses))
 			for _, course := range courses {
-				if course.ServiceHost == host {
+				if course.ServiceHost == svc.Host {
 					filterCourses = append(filterCourses, course)
 				}
 			}
@@ -110,7 +109,7 @@ func guildsInServices(guilds []discord.Guild, cfg web.RenderConfig) map[lms.Host
 			return guildCoursesList[i].Name < guildCoursesList[j].Name
 		})
 
-		hostGuilds[host] = guildCoursesList
+		hostGuilds[svc.Host] = guildCoursesList
 	}
 
 	return hostGuilds

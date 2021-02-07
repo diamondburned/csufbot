@@ -9,15 +9,15 @@ import (
 )
 
 type GuildStore struct {
-	db *badger.DB
+	*needDatabase
 }
 
-func (store *GuildStore) Guild(id discord.GuildID) (*csufbot.Guild, error) {
+func (store GuildStore) Guild(id discord.GuildID) (*csufbot.Guild, error) {
 	var guild *csufbot.Guild
-	return guild, unmarshal(store.db, "guild", u64b(uint64(id)), &guild)
+	return guild, store.unmarshal("guild", u64b(uint64(id)), &guild)
 }
 
-func (store *GuildStore) SetCourses(g discord.GuildID, cs map[lms.CourseID]discord.RoleID) error {
+func (store GuildStore) SetCourses(g discord.GuildID, cs map[lms.CourseID]discord.RoleID) error {
 	var guild *csufbot.Guild
 	key := joinKeys("guild", u64b(uint64(g)))
 
@@ -35,7 +35,7 @@ func (store *GuildStore) SetCourses(g discord.GuildID, cs map[lms.CourseID]disco
 	})
 }
 
-func (store *GuildStore) GuildCourses(
+func (store GuildStore) GuildCourses(
 	courseStore csufbot.CourseStorer, out map[discord.GuildID][]csufbot.Course) error {
 
 	courseMap := make(map[lms.CourseID]csufbot.Course, len(out))

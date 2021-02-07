@@ -6,6 +6,7 @@ import (
 
 	"github.com/diamondburned/csufbot/csufbot"
 	"github.com/diamondburned/csufbot/csufbot/lms"
+	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/pkg/errors"
@@ -15,7 +16,7 @@ var post = web.Templater.Register("post", "routes//sync/service/post.html")
 
 type postSyncData struct {
 	web.RenderConfig
-	Service *web.LMSService
+	Service config.Service
 	done    chan error
 }
 
@@ -34,7 +35,7 @@ func postSync(w http.ResponseWriter, r *http.Request) {
 
 	post.Execute(w, postSyncData{
 		RenderConfig: cfg,
-		Service:      svc,
+		Service:      *svc,
 		done:         done,
 	})
 }
@@ -44,7 +45,7 @@ func (d postSyncData) Wait() error {
 	return <-d.done
 }
 
-func processSync(r *http.Request, cfg web.RenderConfig, svc *web.LMSService) error {
+func processSync(r *http.Request, cfg web.RenderConfig, svc *config.Service) error {
 	token := r.FormValue("token")
 	if token == "" {
 		return errors.New("missing token")
@@ -56,7 +57,7 @@ func processSync(r *http.Request, cfg web.RenderConfig, svc *web.LMSService) err
 		return errors.Wrap(err, "failed to get user ID")
 	}
 
-	auth := svc.Authorize()
+	auth := svc.LMS.Authorize()
 
 	session, err := auth.Token.Authorize(token)
 	if err != nil {
@@ -80,7 +81,7 @@ func processSync(r *http.Request, cfg web.RenderConfig, svc *web.LMSService) err
 		enrolledIDs[i] = course.ID
 		newCourses[i] = csufbot.Course{
 			Course:      course,
-			ServiceHost: svc.Host(),
+			ServiceHost: lms.Host(svc.Host),
 		}
 	}
 
@@ -92,7 +93,7 @@ func processSync(r *http.Request, cfg web.RenderConfig, svc *web.LMSService) err
 		User:        *user,
 		Enrolled:    enrolledIDs,
 		LastSynced:  time.Now(),
-		ServiceHost: svc.Host(),
+		ServiceHost: lms.Host(svc.Host),
 	}
 
 	if err := cfg.Users.Sync(userID, userService); err != nil {

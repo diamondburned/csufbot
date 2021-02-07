@@ -9,37 +9,14 @@ import (
 )
 
 type service struct {
-	name string
 	host string
-	icon string
 }
-
-var _ lms.IconSetter = (*service)(nil)
 
 // New creates a new Moodle service.
-func New(name, host string) lms.Service {
+func New(host lms.Host) lms.Service {
 	return service{
-		name: name,
-		host: host,
-		icon: "https://moodle.com/wp-content/uploads/2019/03/cropped-FAV_icon-1-192x192.png",
+		host: string(host),
 	}
-}
-
-// SetIcon sets the icon. Make an IconSetter interface to access this method.
-func (svc *service) SetIcon(url string) {
-	svc.icon = url
-}
-
-func (svc service) Name() string {
-	return svc.name
-}
-
-func (svc service) Host() lms.Host {
-	return lms.Host(svc.host)
-}
-
-func (svc service) Icon() string {
-	return svc.icon
 }
 
 func (svc service) Authorize() lms.AuthorizationMethods {

@@ -25,10 +25,12 @@ func Open(path string) (*badger.DB, error) {
 
 // Wrap wraps an existing database.
 func Wrap(db *badger.DB) csufbot.Store {
+	wrapped := &needDatabase{db}
+
 	return csufbot.Store{
-		Courses: &CourseStore{db},
-		Guilds:  &GuildStore{db},
-		Users:   &UserStore{db},
+		Courses: CourseStore{wrapped},
+		Guilds:  GuildStore{wrapped},
+		Users:   UserStore{wrapped},
 	}
 }
 
@@ -42,6 +44,25 @@ func New(path string) (csufbot.Store, error) {
 	return Wrap(db), nil
 }
 
+type needDatabase struct {
+	db *badger.DB
+}
+
+func (db *needDatabase) Close() error {
+	return db.db.Close()
+}
+
+func (db *needDatabase) unmarshalString(prefix, key string, v interface{}) error {
+	return db.unmarshal(prefix, []byte(key), v)
+}
+
+func (db *needDatabase) unmarshal(prefix string, key []byte, v interface{}) error {
+	keyBuf := joinKeys(prefix, key)
+	return db.db.View(func(txn *badger.Txn) error {
+		return unmarshalFromTxn(txn, keyBuf, v)
+	})
+}
+
 var nilBytes = []byte{0}
 
 func joinKeys(prefix string, key []byte) []byte {
@@ -52,17 +73,6 @@ func joinKeys(prefix string, key []byte) []byte {
 	keyBuf.Write(key)
 
 	return keyBuf.Bytes()
-}
-
-func unmarshalString(db *badger.DB, prefix, key string, v interface{}) error {
-	return unmarshal(db, prefix, []byte(key), v)
-}
-
-func unmarshal(db *badger.DB, prefix string, key []byte, v interface{}) error {
-	keyBuf := joinKeys(prefix, key)
-	return db.View(func(txn *badger.Txn) error {
-		return unmarshalFromTxn(txn, keyBuf, v)
-	})
 }
 
 func unmarshalFromTxn(txn *badger.Txn, k []byte, v interface{}) error {

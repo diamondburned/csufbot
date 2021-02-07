@@ -10,15 +10,15 @@ import (
 )
 
 type CourseStore struct {
-	db *badger.DB
+	*needDatabase
 }
 
-func (store *CourseStore) Course(id lms.CourseID) (*csufbot.Course, error) {
+func (store CourseStore) Course(id lms.CourseID) (*csufbot.Course, error) {
 	var course *csufbot.Course
-	return course, unmarshalString(store.db, "course", string(id), &course)
+	return course, store.unmarshalString("course", string(id), &course)
 }
 
-func (store *CourseStore) Courses(out map[lms.CourseID]csufbot.Course) error {
+func (store CourseStore) Courses(out map[lms.CourseID]csufbot.Course) error {
 	return store.db.View(func(txn *badger.Txn) error {
 		for id := range out {
 			var c csufbot.Course
@@ -35,7 +35,7 @@ func (store *CourseStore) Courses(out map[lms.CourseID]csufbot.Course) error {
 	})
 }
 
-func (store *CourseStore) UpsertCourses(courses ...csufbot.Course) error {
+func (store CourseStore) UpsertCourses(courses ...csufbot.Course) error {
 	type courseJSON struct {
 		id   []byte
 		json []byte

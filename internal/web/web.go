@@ -9,9 +9,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/diamondburned/arikawa/v2/state"
 	"github.com/diamondburned/csufbot/csufbot"
 	"github.com/diamondburned/csufbot/csufbot/lms"
+	"github.com/diamondburned/csufbot/internal/bot"
+	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/tmplutil"
 	"github.com/phogolabs/parcello"
 
@@ -54,43 +55,19 @@ const (
 	renderCfgCtx ctxTypes = iota
 )
 
-// LMSService describes a LMS service.
-type LMSService struct {
-	lms.Service
-	Instruction template.HTML
-}
-
-// NewLMSService creates a new LMS service.
-func NewLMSService(svc lms.Service, instruction string) LMSService {
-	return LMSService{
-		Service:     svc,
-		Instruction: template.HTML(instruction),
-	}
-}
-
 // RenderConfig is the config to render with.
 type RenderConfig struct {
-	FrontURL   string
-	SiteName   string
-	Disclaimer string
-
-	Services []LMSService
-
 	csufbot.Store
-	Discord DiscordState
-}
+	config.Site
 
-// DiscordState contains information about the current Discord session.
-type DiscordState struct {
-	*state.State
-	// Secret is the OAuth client secret.
-	Secret string
+	Discord  *bot.Discord
+	Services []config.Service
 }
 
 // FindService finds the LMS service from a given name hash.
-func (rcfg RenderConfig) FindService(host lms.Host) *LMSService {
+func (rcfg RenderConfig) FindService(host string) *config.Service {
 	for i, svc := range rcfg.Services {
-		if svc.Host() == host {
+		if svc.Host == lms.Host(host) {
 			return &rcfg.Services[i]
 		}
 	}

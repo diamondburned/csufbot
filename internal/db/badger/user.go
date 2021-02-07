@@ -8,15 +8,15 @@ import (
 )
 
 type UserStore struct {
-	db *badger.DB
+	*needDatabase
 }
 
-func (store *UserStore) User(id discord.UserID) (*csufbot.User, error) {
+func (store UserStore) User(id discord.UserID) (*csufbot.User, error) {
 	var user *csufbot.User
-	return user, unmarshal(store.db, "user", u64b(uint64(id)), &user)
+	return user, store.unmarshal("user", u64b(uint64(id)), &user)
 }
 
-func (store *UserStore) Sync(id discord.UserID, new csufbot.UserInService) error {
+func (store UserStore) Sync(id discord.UserID, new csufbot.UserInService) error {
 	keyBuf := joinKeys("user", u64b(uint64(id)))
 	var user *csufbot.User
 

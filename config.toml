@@ -17,8 +17,10 @@ secret = ""
 name = "badger" # TODO: sqlite and pgx
 address = "/path/to/db"
 
-[[services.canvas]]
+[[services]]
 name = "Canvas"
+type = "canvas"
+icon = "https://du11hjcvx0uqb.cloudfront.net/br/dist/images/apple-touch-icon-585e5d997d.png"
 host = "csufullerton.instructure.com"
 instruction = '''
 	<h4>To obtain the token, do:</h4>
@@ -52,8 +54,10 @@ instruction = '''
 '''
 
 
-[[services.moodle]]
+[[services]]
 name = "TITANium Communities"
+type = "moodle"
+icon = "https://moodle.com/wp-content/uploads/2019/03/cropped-FAV_icon-1-192x192.png"
 host = "communities.fullerton.edu"
 instruction = '''
 	<h4>To obtain the token, do:</h4>
@@ -83,8 +87,10 @@ instruction = '''
 	</ol>
 '''
 
-[[services.moodle]]
+[[services]]
 name = "TITANium 2020 to 2021"
+type = "moodle"
+icon = "https://moodle.com/wp-content/uploads/2019/03/cropped-FAV_icon-1-192x192.png"
 host = "moodle-2020-2021.fullerton.edu"
 instruction = '''
 	<h4>To obtain the token, do:</h4>
@@ -114,8 +120,10 @@ instruction = '''
 	</ol>
 '''
 
-[[services.moodle]]
+[[services]]
 name = "TITANium 2019 to 2020"
+type = "moodle"
+icon = "https://moodle.com/wp-content/uploads/2019/03/cropped-FAV_icon-1-192x192.png"
 host = "moodle-2019-2020.fullerton.edu"
 instruction = '''
 	<h4>To obtain the token, do:</h4>

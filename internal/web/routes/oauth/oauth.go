@@ -8,6 +8,7 @@ import (
 
 	"github.com/diamondburned/arikawa/v2/api"
 	"github.com/diamondburned/arikawa/v2/discord"
+	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/go-chi/chi"
 	"golang.org/x/oauth2"
 )
@@ -27,7 +28,8 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oa := config(r)
+	cfg := web.GetRenderConfig(r.Context())
+	oa := cfg.Discord.OAuth(cfg.FrontURL)
 
 	t, err := oa.Exchange(r.Context(), code, oauth2.AccessTypeOnline)
 	if err != nil {
@@ -91,7 +93,8 @@ func Require(next http.Handler) http.Handler {
 			})
 		}
 
-		oa := config(r)
+		cfg := web.GetRenderConfig(r.Context())
+		oa := cfg.Discord.OAuth(cfg.FrontURL)
 		rd := oa.AuthCodeURL("state", oauth2.AccessTypeOnline)
 		http.Redirect(w, r, rd, http.StatusFound)
 	})

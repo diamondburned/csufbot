@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/csufbot/csufbot/lms"
+	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/csufbot/internal/web"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/diamondburned/tmplutil"
@@ -34,7 +34,7 @@ func Mount(paramName string) http.Handler {
 func needService(name string) web.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			serviceHost := lms.Host(chi.URLParam(r, name))
+			serviceHost := chi.URLParam(r, name)
 
 			cfg := web.GetRenderConfig(r.Context())
 			svc := cfg.FindService(serviceHost)
@@ -49,8 +49,8 @@ func needService(name string) web.Middleware {
 	}
 }
 
-func getService(ctx context.Context) *web.LMSService {
-	sv, ok := ctx.Value(serviceCtxKey).(*web.LMSService)
+func getService(ctx context.Context) *config.Service {
+	sv, ok := ctx.Value(serviceCtxKey).(*config.Service)
 	if !ok {
 		log.Panicln("missing *web.LMSService in request")
 	}
@@ -60,7 +60,7 @@ func getService(ctx context.Context) *web.LMSService {
 type serviceSyncData struct {
 	web.RenderConfig
 	Client  *oauth.UserClient
-	Service *web.LMSService
+	Service *config.Service
 }
 
 func (data serviceSyncData) Me() *discord.User {
