@@ -1,6 +1,12 @@
 package csufbot
 
-import "io"
+import (
+	"errors"
+	"io"
+)
+
+// ErrNotFound can be returned if storers can't find the requested resource.
+var ErrNotFound = errors.New("not found")
 
 // Store contains database store interfaces. These store interfaces may
 // optionally implement io.Closer.

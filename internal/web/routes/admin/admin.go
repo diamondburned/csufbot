@@ -6,74 +6,83 @@ import (
 
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/csufbot"
-	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/web"
+	"github.com/diamondburned/csufbot/internal/web/routes/admin/adminonly"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/go-chi/chi"
 )
 
 var (
-	courses = web.Templater.Register("courses", "routes//admin/courses.html")
-)
-
-type ctxKey uint8
-
-const (
-	routeDataKey ctxKey = iota
+	admin = web.Templater.Register("admin", "routes/admin/admin.html")
 )
 
 func Mount() http.Handler {
 	r := chi.NewRouter()
+	r.Use(oauth.Require)
 
 	r.Route("/{guildID}", func(r chi.Router) {
-		r.Use(oauth.Require)
-		r.Use(adminOnly)
+		r.Use(adminonly.Require("guildID", true))
 
-		r.Get("/courses", chooseCourses)
+		// r.Get("/courses", chooseCourses)
 	})
+
+	r.Get("/", render)
 
 	return r
 }
 
-func guildID(r *http.Request) discord.GuildID {
-	s, _ := discord.ParseSnowflake(chi.URLParam(r, "guildID"))
-	return discord.GuildID(s)
-}
-
-type chooseCoursesData struct {
+type data struct {
 	web.RenderConfig
-	routeData
-	CourseMap map[lms.CourseID]csufbot.Course
-	Services  []csufbot.UserInService
+	Client *oauth.UserClient
 }
 
-func chooseCourses(w http.ResponseWriter, r *http.Request) {
-	// TODO: button to link more classes
-	cfg := web.GetRenderConfig(r.Context())
-	routeData := getRouteData(r.Context())
+func (d data) Me() *discord.User {
+	u, _ := d.Client.Me()
+	return u
+}
 
-	u, err := cfg.Users.User(routeData.UserID)
-	if err != nil { // Invalid user ID.
-		w.WriteHeader(401)
-		return
+type guildCourse struct {
+	*discord.Guild
+	Courses []csufbot.Course
+}
+
+func (d data) AdminGuilds() []guildCourse {
+	guilds, err := d.Client.Guilds(100)
+	if err != nil {
+		return nil
 	}
 
-	var courseMap = make(map[lms.CourseID]csufbot.Course, 10)
-	for _, svc := range u.Services {
-		for _, id := range svc.Enrolled {
-			courseMap[id] = csufbot.Course{}
+	admins := guilds[:0]
+
+	for _, guild := range guilds {
+		if guild.Permissions.Has(discord.PermissionAdministrator) {
+			admins = append(admins, guild)
 		}
 	}
 
-	if err := cfg.Courses.Courses(courseMap); err != nil {
-		w.WriteHeader(500)
-		return
+	courseOut := make(map[discord.GuildID][]csufbot.Course, len(admins))
+	for _, guild := range admins {
+		courseOut[guild.ID] = nil
 	}
 
-	courses.Execute(w, chooseCoursesData{
-		RenderConfig: cfg,
-		routeData:    routeData,
-		CourseMap:    courseMap,
-		Services:     u.Services,
+	if err := csufbot.GuildsCourses(d.Store, courseOut); err != nil {
+		return nil
+	}
+
+	guildCourses := make([]guildCourse, len(admins))
+	for i, guild := range admins {
+		guildCourses[i] = guildCourse{
+			Guild:   &admins[i],
+			Courses: courseOut[guild.ID],
+		}
+	}
+
+	return guildCourses
+}
+
+func render(w http.ResponseWriter, r *http.Request) {
+	admin.Execute(w, data{
+		RenderConfig: web.GetRenderConfig(r.Context()),
+		Client:       oauth.Client(r.Context()),
 	})
 }

@@ -69,7 +69,7 @@ func guildsInServices(guilds []discord.Guild, cfg web.RenderConfig) map[lms.Host
 		guildIDCourses[guild.ID] = nil
 	}
 
-	if err := cfg.Guilds.GuildCourses(cfg.Courses, guildIDCourses); err != nil {
+	if err := csufbot.GuildsCourses(cfg.Store, guildIDCourses); err != nil {
 		return nil
 	}
 

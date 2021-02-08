@@ -2,11 +2,14 @@ package bot
 
 import (
 	"github.com/diamondburned/arikawa/v2/bot"
+	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/arikawa/v2/gateway"
 	"github.com/diamondburned/arikawa/v2/state"
 	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
+
+	"github.com/diamondburned/csufbot/internal/bot/commands/admin"
 )
 
 var endpoint = oauth2.Endpoint{
@@ -32,14 +35,28 @@ func Open(cfg *config.Config) (*Discord, error) {
 		return nil, errors.Wrap(err, "failed to create state")
 	}
 
+	s.Gateway.Identifier.IdentifyData.Presence = &gateway.UpdateStatusData{
+		Activities: []discord.Activity{{
+			Name: "csuf!help | " + cfg.Site.FrontURL,
+			Type: discord.GameActivity,
+		}},
+	}
+
 	b, err := bot.New(s, &root{Config: cfg})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create bot")
 	}
 
+	b.HasPrefix = bot.NewPrefix("csuf!")
+
 	b.AddIntents(b.DeriveIntents())
 	b.AddIntents(gateway.IntentGuilds)
 	b.AddIntents(gateway.IntentGuildMembers)
+
+	b.RegisterSubcommand(&admin.Admin{Config: cfg})
+
+	b.Name = "CSUFBot"
+	b.Description = "A Discord bot to help managing class servers."
 
 	// Bind a handler once forever.
 	b.Start()

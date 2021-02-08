@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<title>Sync - {{.SiteName}}</title>
+
+{{ template "css" . }}
+{{ template "header" . }}
+
+<div class="admin">
+	{{ $me := (.Me) }}
+
+	{{ with $me }}
+	<div class="discord-info">
+		<div class="user">
+			<img class="avatar avatar-xxl" src="{{ .AvatarURL }}?size=128" alt="Avatar">
+			<div class="name">
+				<span class="username">{{ .Username }}</span>
+				<small class="discriminator">#{{.Discriminator}}</small>
+			</div>
+		</div>
+	</div>
+	{{ end }}
+
+	{{ range .AdminGuilds }}
+	{{ end }}
+</div>
+
+{{ template "footer" . }}

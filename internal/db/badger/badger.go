@@ -9,6 +9,7 @@ import (
 	"github.com/dgraph-io/badger/v3"
 	"github.com/dgraph-io/badger/v3/options"
 	"github.com/diamondburned/csufbot/csufbot"
+	"github.com/pkg/errors"
 )
 
 // Open opens a new Badger database.
@@ -78,8 +79,13 @@ func joinKeys(prefix string, key []byte) []byte {
 func unmarshalFromTxn(txn *badger.Txn, k []byte, v interface{}) error {
 	t, err := txn.Get(k)
 	if err != nil {
+		if errors.Is(err, badger.ErrKeyNotFound) {
+			return csufbot.ErrNotFound
+		}
+
 		return err
 	}
+
 	return t.Value(func(value []byte) error {
 		return json.Unmarshal(value, v)
 	})

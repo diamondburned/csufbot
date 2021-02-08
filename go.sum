@@ -70,6 +70,10 @@ github.com/diamondburned/arikawa v1.3.14 h1:9Y1r8nlvWA01hQIYVFGr83JTLd5ULPBzNOKv
 github.com/diamondburned/arikawa v1.3.14/go.mod h1:nIhVIatzTQhPUa7NB8w4koG1RF9gYbpAr8Fj8sKq660=
 github.com/diamondburned/arikawa/v2 v2.0.2 h1:qAbRUzhPio/NeiMs+NQtAHZNanTV+WuK/3gauWfRTlU=
 github.com/diamondburned/arikawa/v2 v2.0.2/go.mod h1:e+lhS20ni2luFEU06Pc8paCxgZL99/RZb77dOC82CF0=
+github.com/diamondburned/arikawa/v2 v2.0.3 h1:PPBzWOxK/HXBlcX2VyrpAKxrOuBa5JHwxPoM9XeHnqs=
+github.com/diamondburned/arikawa/v2 v2.0.3/go.mod h1:e+lhS20ni2luFEU06Pc8paCxgZL99/RZb77dOC82CF0=
+github.com/diamondburned/arikawa/v2 v2.0.4-0.20210208012116-d13aa00a571f h1:cIw31tr/dGRi2ZmkOkTOEyNqDqyVJkQoM2EgVko0mP0=
+github.com/diamondburned/arikawa/v2 v2.0.4-0.20210208012116-d13aa00a571f/go.mod h1:e+lhS20ni2luFEU06Pc8paCxgZL99/RZb77dOC82CF0=
 github.com/diamondburned/gracehttp v0.0.0-20210207013449-ee18d674f83f h1:z3mKKn0UN9DHxK0iJTgSjRgaAbsekCgsZX65bW8sXMw=
 github.com/diamondburned/gracehttp v0.0.0-20210207013449-ee18d674f83f/go.mod h1:y0DW5ASPssZc54IZtiGxAVmgsFhfQ6rfN4HqpnpenjQ=
 github.com/diamondburned/tmplutil v0.0.0-20210131222542-eb3ba5ad7fdc h1:kDfrg0pKPWHY7bNiI/X2VG5bG4jfQSJ2fCz6RacQdRk=
