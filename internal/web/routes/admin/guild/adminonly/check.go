@@ -7,14 +7,17 @@ import (
 
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/internal/web"
+	"github.com/diamondburned/csufbot/internal/web/components/errorbox"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 )
 
 type ctxKey uint8
 
 const (
 	routeDataKey ctxKey = iota
+	cacheDataKey
 )
 
 // Data contains data that follows after the admin check and contains
@@ -62,7 +65,7 @@ func setData(r *http.Request, data Data) *http.Request {
 func fetchData(w http.ResponseWriter, r *http.Request, routeParam string) (Data, bool) {
 	snowflake, err := discord.ParseSnowflake(chi.URLParam(r, routeParam))
 	if err != nil {
-		w.WriteHeader(404)
+		errorbox.Render(w, r, 404, errors.Wrap(err, "invalid snowflake"))
 		return Data{}, false
 	}
 
@@ -72,26 +75,29 @@ func fetchData(w http.ResponseWriter, r *http.Request, routeParam string) (Data,
 	userID, err := userClient.UserID()
 	if err != nil {
 		// Must be a token error that this fails.
-		w.WriteHeader(400)
+		errorbox.Render(w, r, 400, errors.Wrap(err, "failed to get user ID"))
 		return Data{}, false
 	}
 
 	cfg := web.GetRenderConfig(r.Context())
 
-	guild, err := cfg.Discord.Guild(guildID)
+	// Get the guild from the user's perspective.
+	guild, err := userClient.Guild(guildID)
 	if err != nil {
-		w.WriteHeader(401)
+		errorbox.Render(w, r, 401, errors.Wrap(err, "invalid guild"))
 		return Data{}, false
 	}
 
+	// We can then check for the right permissions this way.
 	if !guild.Permissions.Has(discord.PermissionAdministrator) {
-		w.WriteHeader(401)
+		errorbox.Render(w, r, 401, errors.New("not an administrator"))
 		return Data{}, false
 	}
 
+	// We don't need to get the member's information from them.
 	member, err := cfg.Discord.Member(guildID, userID)
 	if err != nil {
-		w.WriteHeader(401)
+		errorbox.Render(w, r, 401, errors.Wrap(err, "invalid member"))
 		return Data{}, false
 	}
 

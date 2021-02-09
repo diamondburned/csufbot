@@ -9,12 +9,10 @@
 
 	{{ with $me }}
 	<div class="discord-info">
-		<div class="user">
-			<img class="avatar avatar-xxl" src="{{ .AvatarURL }}?size=128" alt="Avatar">
-			<div class="name">
-				<span class="username">{{ .Username }}</span>
-				<small class="discriminator">#{{.Discriminator}}</small>
-			</div>
+		<img class="avatar avatar-xxl" src="{{ .AvatarURL }}?size=128" alt="Avatar">
+		<div class="name">
+			<span class="username">{{ .Username }}</span>
+			<small class="discriminator">#{{.Discriminator}}</small>
 		</div>
 	</div>
 	{{ end }}

@@ -19,8 +19,9 @@ var endpoint = oauth2.Endpoint{
 }
 
 var oauthScopes = []string{
-	"identify", // for user ID
-	"guilds",   // for list of guilds
+	"identify",    // for user ID
+	"guilds",      // for list of guilds
+	"guilds.join", // for future use
 }
 
 type Discord struct {

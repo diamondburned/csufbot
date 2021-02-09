@@ -1,0 +1,15 @@
+<div class="errorbox">
+	<label for="error-dialog">
+		<mark class="secondary">Error:</mark>
+		<span class="short">{{ shortError . }}</span>
+	</label>
+	
+	<input type="checkbox" id="error-dialog" class="modal">
+	<div role="dialog" aria-lebelledby="error-dialog-title">
+		<div class="card large">
+			<label for="error-dialog" class="modal-close"></label>
+			<h3 class="section" id="error-dialog-title">Full Error</h3>
+			<pre class="section error">{{ .Error }}</pre>
+		</div>
+	</div>
+</div>

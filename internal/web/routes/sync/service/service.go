@@ -8,9 +8,11 @@ import (
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/csufbot/internal/web"
+	"github.com/diamondburned/csufbot/internal/web/components/errorbox"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/diamondburned/tmplutil"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 )
 
 type ctxKey uint8
@@ -39,7 +41,7 @@ func needService(name string) web.Middleware {
 			cfg := web.GetRenderConfig(r.Context())
 			svc := cfg.FindService(serviceHost)
 			if svc == nil {
-				w.WriteHeader(404)
+				errorbox.Render(w, r, 404, errors.New("service not found"))
 				return
 			}
 

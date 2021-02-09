@@ -4,23 +4,62 @@
 {{ template "css" . }}
 {{ template "header" . }}
 
-<div class="admin">
+<div id="admin">
 	{{ $me := (.Me) }}
 
 	{{ with $me }}
 	<div class="discord-info">
-		<div class="user">
-			<img class="avatar avatar-xxl" src="{{ .AvatarURL }}?size=128" alt="Avatar">
-			<div class="name">
-				<span class="username">{{ .Username }}</span>
-				<small class="discriminator">#{{.Discriminator}}</small>
-			</div>
+		<img class="avatar avatar-xxl" src="{{ .AvatarURL }}?size=128" alt="Avatar">
+		<div class="name">
+			<span class="username">{{ .Username }}</span>
+			<small class="discriminator">#{{.Discriminator}}</small>
 		</div>
 	</div>
 	{{ end }}
 
-	{{ range .AdminGuilds }}
-	{{ end }}
+	<div class="admin-guilds card fluid">
+		<div class="section">
+			<h2>Servers</h2>
+
+			{{ if .HideUnregistered }}
+			<a role="button" class="small" href="?hide_unregistered=0">
+				Show Unregistered Servers
+			</a>
+			{{ else }}
+			<a role="button" class="small" href="?hide_unregistered=1">
+				Hide Unregistered Servers
+			</a>
+			{{ end }}
+		</div>
+
+		<div class="section">
+			{{ range .AdminGuilds }}
+			<a role="button" class="guild" href="/admin/{{ .ID }}">
+				{{ if .IconURL }}
+				<img class="avatar" src="{{.IconURL}}?size=64">
+				{{ else }}
+				<div class="avatar initials">{{ initials .Name }}</div>
+				{{ end }}
+
+				<span>{{ .Name }}</span>
+
+				{{ range .Courses }}
+				<mark class="tag">{{ .Name }}</mark>
+				{{ end }}
+			</a>
+			{{ else }}
+			<div class="empty">
+				{{ if .HideUnregistered }}
+				<small>I don't see any registered servers.</small>
+				{{ else }}
+				<small>I don't see any servers that you're an administrator in.</small>
+				{{ end }}
+			</div>
+			{{ end }}
+		</div>
+	</div>
+
+	{{ with .Error }} {{ template "errorbox" . }} {{ end }}
 </div>
 
 {{ template "footer" . }}

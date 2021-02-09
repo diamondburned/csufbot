@@ -43,13 +43,19 @@ func (g Guild) Courses(store CourseStorer) (map[lms.CourseID]Course, error) {
 }
 
 // GuildsCourses searches for the enrolled courses of each guild. It writes
-// directly to the given output map.
+// directly to the given output map. Guilds that cannot be found will be set to
+// nil.
 func GuildsCourses(store Store, out map[discord.GuildID][]Course) error {
 	courseMap := map[lms.CourseID]Course{}
 
 	for guildID := range out {
 		g, err := store.Guilds.Guild(guildID)
 		if err != nil {
+			if errors.Is(err, ErrNotFound) {
+				out[guildID] = nil
+				continue
+			}
+
 			return errors.Wrapf(err, "failed to get guild ID %d", guildID)
 		}
 

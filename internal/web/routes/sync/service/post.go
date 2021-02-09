@@ -8,6 +8,7 @@ import (
 	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/csufbot/internal/web"
+	"github.com/diamondburned/csufbot/internal/web/components/errorbox"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/pkg/errors"
 )
@@ -26,7 +27,7 @@ func postSync(w http.ResponseWriter, r *http.Request) {
 
 	svc := getService(r.Context())
 	if svc == nil {
-		w.WriteHeader(404)
+		errorbox.Render(w, r, 404, errors.New("service not found"))
 		return
 	}
 

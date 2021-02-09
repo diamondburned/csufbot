@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<title>Error! - {{.SiteName}}</title>
+
+{{ template "css" . }}
+{{ template "header" . }}
+
+<div id="errorpage">
+	<div class="card error">
+		<h4  class="section">Error {{.Code}} {{.Status}}</h2>
+		<pre class="section error">{{ .Error }}</pre>
+	</div>
+
+	{{ with .Referer }}
+	<a href="{{ . }}">🡸 Go back</a>
+	{{ end }}
+</div>
+
+{{ template "footer" . }}

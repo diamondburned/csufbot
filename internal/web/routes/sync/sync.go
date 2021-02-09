@@ -55,7 +55,7 @@ type guildCourses struct {
 // GuildsInServices searches for the current user's guilds and returns a list of
 // guilds that they're in.
 func (data syncData) GuildsInServices() map[lms.Host][]guildCourses {
-	guilds, _ := data.Client.Guilds(100)
+	guilds, _ := data.Client.Guilds()
 	if len(guilds) == 0 {
 		return nil
 	}

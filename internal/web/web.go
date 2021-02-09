@@ -2,12 +2,8 @@ package web
 
 import (
 	"context"
-	"html/template"
 	"log"
 	"net/http"
-	"strings"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/diamondburned/csufbot/csufbot"
 	"github.com/diamondburned/csufbot/csufbot/lms"
@@ -15,8 +11,6 @@ import (
 	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/tmplutil"
 	"github.com/phogolabs/parcello"
-
-	humanize "github.com/dustin/go-humanize"
 )
 
 //go:generate go run github.com/phogolabs/parcello/cmd/parcello -r -i *.go
@@ -29,24 +23,7 @@ var Templater = tmplutil.Templater{
 		"header":   "components/header.html",
 		"footer":   "components/footer.html",
 	},
-	Functions: template.FuncMap{
-		"humanizeTime": humanize.Time,
-		"shortError": func(err error) string {
-			parts := strings.Split(err.Error(), ": ")
-			if len(parts) == 0 {
-				return ""
-			}
-
-			part := parts[len(parts)-1]
-
-			r, sz := utf8.DecodeRuneInString(part)
-			if sz == 0 {
-				return ""
-			}
-
-			return string(unicode.ToUpper(r)) + part[sz:] + "."
-		},
-	},
+	Functions: funcs,
 }
 
 type ctxTypes uint8

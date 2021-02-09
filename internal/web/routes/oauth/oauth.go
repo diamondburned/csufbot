@@ -9,7 +9,9 @@ import (
 	"github.com/diamondburned/arikawa/v2/api"
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/internal/web"
+	"github.com/diamondburned/csufbot/internal/web/components/errorbox"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
 
@@ -24,7 +26,7 @@ func Mount() http.Handler {
 func redirect(w http.ResponseWriter, r *http.Request) {
 	code := r.FormValue("code")
 	if code == "" {
-		w.WriteHeader(401)
+		errorbox.Render(w, r, 401, errors.New("?code not found"))
 		return
 	}
 
@@ -33,7 +35,7 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 
 	t, err := oa.Exchange(r.Context(), code, oauth2.AccessTypeOnline)
 	if err != nil {
-		w.WriteHeader(401)
+		errorbox.Render(w, r, 401, errors.Wrap(err, "error xchg OAuth"))
 		return
 	}
 
@@ -105,6 +107,7 @@ func Require(next http.Handler) http.Handler {
 type UserClient struct {
 	*api.Client
 	userID discord.UserID
+	guilds []discord.Guild
 }
 
 // UserID gets the current user's ID. This method is not thread-safe, as it
@@ -131,6 +134,38 @@ func (c *UserClient) Me() (*discord.User, error) {
 
 	c.userID = u.ID
 	return u, nil
+}
+
+// Guilds fetches a list of guilds. It is cached, and is therefore not
+// thread-safe. It limits itself to 100 guilds.
+func (c *UserClient) Guilds() ([]discord.Guild, error) {
+	if c.guilds != nil {
+		return c.guilds, nil
+	}
+	var err error
+	c.guilds, err = c.Client.Guilds(100)
+	return c.guilds, err
+}
+
+// Guild overrides the other method to fetch the list and manually search
+// through it. This has to be done because Discord does not allow single guild
+// ID lookup.
+//
+// The method limits itself to 100 guilds. It also caches, making it thread
+// unsafe.
+func (c *UserClient) Guild(guildID discord.GuildID) (*discord.Guild, error) {
+	guilds, err := c.Guilds()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get guilds")
+	}
+
+	for _, guild := range guilds {
+		if guild.ID == guildID {
+			return &guild, nil
+		}
+	}
+
+	return nil, errors.New("guild not found")
 }
 
 // Client gets the Discord API client with the OAuth Bearer token from the

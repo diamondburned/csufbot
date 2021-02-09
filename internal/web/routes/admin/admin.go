@@ -3,13 +3,16 @@ package admin
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/csufbot"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/routes/admin/adminonly"
+	"github.com/diamondburned/csufbot/internal/web/routes/admin/guild"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
+	"github.com/diamondburned/tmplutil"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -19,13 +22,9 @@ var (
 func Mount() http.Handler {
 	r := chi.NewRouter()
 	r.Use(oauth.Require)
+	r.Use(tmplutil.AlwaysFlush)
 
-	r.Route("/{guildID}", func(r chi.Router) {
-		r.Use(adminonly.Require("guildID", true))
-
-		// r.Get("/courses", chooseCourses)
-	})
-
+	r.Mount("/{guildID}", guild.Mount("guildID"))
 	r.Get("/", render)
 
 	return r
@@ -33,11 +32,17 @@ func Mount() http.Handler {
 
 type data struct {
 	web.RenderConfig
+
 	Client *oauth.UserClient
+
+	Error error
+
+	HideUnregistered bool
 }
 
-func (d data) Me() *discord.User {
-	u, _ := d.Client.Me()
+func (d *data) Me() *discord.User {
+	u, err := d.Client.Me()
+	d.Error = err
 	return u
 }
 
@@ -46,9 +51,10 @@ type guildCourse struct {
 	Courses []csufbot.Course
 }
 
-func (d data) AdminGuilds() []guildCourse {
-	guilds, err := d.Client.Guilds(100)
+func (d *data) AdminGuilds() []guildCourse {
+	guilds, err := d.Client.Guilds()
 	if err != nil {
+		d.Error = errors.Wrap(err, "failed to get guilds")
 		return nil
 	}
 
@@ -60,29 +66,46 @@ func (d data) AdminGuilds() []guildCourse {
 		}
 	}
 
+	if len(admins) == 0 {
+		return nil
+	}
+
 	courseOut := make(map[discord.GuildID][]csufbot.Course, len(admins))
 	for _, guild := range admins {
 		courseOut[guild.ID] = nil
 	}
 
 	if err := csufbot.GuildsCourses(d.Store, courseOut); err != nil {
+		d.Error = errors.Wrap(err, "failed to get courses")
 		return nil
 	}
 
-	guildCourses := make([]guildCourse, len(admins))
+	// Sort newest guilds first.
+	sort.Slice(admins, func(i, j int) bool {
+		return admins[i].ID > admins[j].ID
+	})
+
+	guildCourses := make([]guildCourse, 0, len(admins))
 	for i, guild := range admins {
-		guildCourses[i] = guildCourse{
-			Guild:   &admins[i],
-			Courses: courseOut[guild.ID],
+		coursesL := courseOut[guild.ID]
+		if d.HideUnregistered && len(coursesL) == 0 {
+			continue
 		}
+
+		guildCourses = append(guildCourses, guildCourse{
+			Guild:   &admins[i],
+			Courses: coursesL,
+		})
 	}
 
 	return guildCourses
 }
 
 func render(w http.ResponseWriter, r *http.Request) {
-	admin.Execute(w, data{
+	admin.Execute(w, &data{
 		RenderConfig: web.GetRenderConfig(r.Context()),
 		Client:       oauth.Client(r.Context()),
+
+		HideUnregistered: r.FormValue("hide_unregistered") == "1",
 	})
 }

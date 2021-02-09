@@ -1,5 +1,6 @@
 :root {
 	--universal-border-radius: 4px;
+	--button-hover-back-color: var(--button-group-border-color);
 }
 
 body {
@@ -78,25 +79,40 @@ footer section.disclaimer small {
 	font-size: 60%;
 }
 
-img.avatar.avatar {
+.avatar {
+	color: white;
+	background-color: var(--button-fore-color);
+
 	width:  32px;
 	height: 32px;
 	border-radius: 500px;
 	vertical-align: text-bottom;
+    box-shadow: 0px 0px 3px 0px rgba(12, 12, 12, 0.25);
 }
-img.avatar.avatar-sm {
+.avatar.avatar-sm {
 	width:  24px;
 	height: 24px;
 }
-img.avatar.avatar-xl {
+.avatar.avatar-xl {
 	width:  64px;
 	height: 64px;
 }
-img.avatar.avatar-xxl {
+.avatar.avatar-xxl {
 	width:  5rem;
 	height: 5rem;
     border: 2px solid #5755d9;
     box-shadow: 0px 0px 12px -4px rgba(128,127,226,0.75);
+}
+div.avatar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+div.avatar.initials {
+	font-size: 1.2rem;
+}
+div.avatar.avatar-xxl.initials {
+	font-size: 2.5rem;
 }
 
 div.empty {
@@ -108,15 +124,35 @@ div.empty {
 }
 
 div.card, form.card {
-	box-shadow: 0px 0px 10px -2px rgba(0,0,0,0.35);
+	box-shadow: 0px 0px 5px -2px rgba(0,0,0,0.25);
 	border-radius: 8px;
 }
 form.card {
 	background: unset;
 }
 
+pre {
+	overflow: hidden;
+	white-space: pre-line;
+}
+pre.error {
+	--pre-color: #B71C1C;
+}
+
 p.error > span.error-prefix {
 	font-weight: bold;
+}
+
+div.errorbox {
+	padding: var(--universal-padding);
+	display: flex;
+	justify-content: center;
+}
+div.errorbox > label {
+	padding: 0;
+}
+div.errorbox > label > span.short {
+	text-decoration: underline;
 }
 
 a.column {
@@ -151,22 +187,19 @@ a.service-card > div.card > div.section:first-child small * {
 	font-size: unset;
 }
 
-div.sync div.user {
+div.discord-info {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	margin-bottom: 1rem;
 }
-
-div.sync div.user > img {
+div.discord-info > .avatar {
 	margin-right: 1rem;
 }
-
-div.sync div.user > div.name > .username {
+div.discord-info > div.name > span {
 	font-size: 1rem;
 }
-
-div.sync div.user > div.name > .discriminator {
+div.discord-info > div.name > small {
 	opacity: 0.75;
 }
 
@@ -241,6 +274,49 @@ div.service-post > * {
 	margin: 0;
 }
 
-#sync-error label {
+div#admin,
+div#guild-admin {
+	flex: 1;
+	padding: calc(var(--universal-padding) * 2) var(--universal-padding);
+}
+
+div#admin       > div.card,
+div#guild-admin > div.card {
+	margin: var(--universal-margin) 0;
+}
+div#admin > div.card > .section:first-child {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+div#admin > div.card > .section:first-child > * {
+	margin: 0;
+}
+div#admin > div.card > .section:first-child > h2 {
+	margin: 0 var(--universal-margin);
+}
+
+div#admin > div.admin-guilds > :nth-child(2) {
 	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+div#admin > div.admin-guilds a.guild {
+	padding: var(--universal-padding);
+	display: flex;
+	align-items: center;
+}
+div#admin > div.admin-guilds a.guild:not(:last-child) {
+	margin-bottom: 0;
+}
+div#admin > div.admin-guilds a.guild .avatar {
+	margin-right: var(--universal-margin);
+}
+
+div#errorpage {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
 }
