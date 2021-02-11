@@ -193,6 +193,9 @@ div.discord-info {
 	justify-content: center;
 	margin-bottom: 1rem;
 }
+div.discord-info h2 {
+	margin: 0;
+}
 div.discord-info > .avatar {
 	margin-right: 1rem;
 }

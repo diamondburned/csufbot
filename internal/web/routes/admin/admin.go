@@ -58,7 +58,7 @@ func (d *data) AdminGuilds() []guildCourse {
 		return nil
 	}
 
-	admins := guilds[:0]
+	admins := make([]discord.Guild, 0, len(guilds))
 
 	for _, guild := range guilds {
 		if guild.Permissions.Has(discord.PermissionAdministrator) {

@@ -70,6 +70,9 @@ const (
 	oauthClientKey ctxKey = iota
 )
 
+// Discord is technically a global state, so this is fine.
+var globalCache = newCache()
+
 // Require marks handlers as requiring Discord authentication. If not, the
 // client will be promptly redirected to Discord.
 func Require(next http.Handler) http.Handler {
@@ -77,9 +80,16 @@ func Require(next http.Handler) http.Handler {
 		c, err := r.Cookie("discord")
 		// If we still have the token cookie, then serve as usual.
 		if err == nil {
-			cli := api.NewClient("Bearer " + c.Value)
-			ctx := context.WithValue(r.Context(), oauthClientKey, cli)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			cc := globalCache.acquire(c.Value)
+			defer globalCache.release(cc)
+
+			next.ServeHTTP(w, r.WithContext(
+				context.WithValue(r.Context(), oauthClientKey, &UserClient{
+					Client: api.NewClient("Bearer " + c.Value),
+					Cache:  cc.store,
+					item:   cc,
+				}),
+			))
 
 			return
 		}
@@ -106,17 +116,24 @@ func Require(next http.Handler) http.Handler {
 // endpoints.
 type UserClient struct {
 	*api.Client
-	userID discord.UserID
-	guilds []discord.Guild
+	Cache CacheStore
+
+	item *cacheItem
+}
+
+var (
+	userCache   = NewCacheKey()
+	guildsCache = NewCacheKey()
+)
+
+// InvalidateCache invalidates the current cache.
+func (c *UserClient) InvalidateCache() {
+	c.item.store = make(CacheStore)
 }
 
 // UserID gets the current user's ID. This method is not thread-safe, as it
 // relies on a stateful cache.
 func (c *UserClient) UserID() (discord.UserID, error) {
-	if c.userID.IsValid() {
-		return c.userID, nil
-	}
-
 	u, err := c.Me()
 	if err != nil {
 		return 0, err
@@ -127,24 +144,35 @@ func (c *UserClient) UserID() (discord.UserID, error) {
 
 // Me gets the current user. It saves the user ID, so it is not thread-safe.
 func (c *UserClient) Me() (*discord.User, error) {
+	user, ok := c.Cache[userCache].(discord.User)
+	if ok {
+		return &user, nil
+	}
+
 	u, err := c.Client.Me()
 	if err != nil {
 		return nil, err
 	}
 
-	c.userID = u.ID
+	c.Cache[userCache] = *u
 	return u, nil
 }
 
 // Guilds fetches a list of guilds. It is cached, and is therefore not
 // thread-safe. It limits itself to 100 guilds.
 func (c *UserClient) Guilds() ([]discord.Guild, error) {
-	if c.guilds != nil {
-		return c.guilds, nil
+	guilds, ok := c.Cache[guildsCache].([]discord.Guild)
+	if ok {
+		return guilds, nil
 	}
-	var err error
-	c.guilds, err = c.Client.Guilds(100)
-	return c.guilds, err
+
+	guilds, err := c.Client.Guilds(100)
+	if err != nil {
+		return nil, err
+	}
+
+	c.Cache[guildsCache] = guilds
+	return guilds, nil
 }
 
 // Guild overrides the other method to fetch the list and manually search
@@ -172,9 +200,9 @@ func (c *UserClient) Guild(guildID discord.GuildID) (*discord.Guild, error) {
 // cookies set after a redirection. The function requires the RequireOAuth
 // middleware; it panics if the middleware is not used.
 func Client(ctx context.Context) *UserClient {
-	dc, ok := ctx.Value(oauthClientKey).(*api.Client)
+	dc, ok := ctx.Value(oauthClientKey).(*UserClient)
 	if !ok {
-		log.Panicln("missing api.Client")
+		log.Panicln("missing UserClient")
 	}
-	return &UserClient{Client: dc}
+	return dc
 }

@@ -3,7 +3,6 @@ package guild
 import (
 	"net/http"
 
-	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/csufbot/csufbot"
 	"github.com/diamondburned/csufbot/csufbot/lms"
 	"github.com/diamondburned/csufbot/internal/web"
@@ -18,7 +17,7 @@ var guild = web.Templater.Register("guild", "routes/admin/guild/guild.html")
 
 func Mount(guildIDParam string) http.Handler {
 	r := chi.NewRouter()
-	r.Use(adminonly.Require(guildIDParam, true))
+	r.Use(adminonly.Require(guildIDParam))
 
 	r.Get("/", render)
 	r.Post("/refresh", refresh)
@@ -27,10 +26,8 @@ func Mount(guildIDParam string) http.Handler {
 }
 
 func refresh(w http.ResponseWriter, r *http.Request) {
-	cacher := adminonly.GetCache(r.Context())
 	client := oauth.Client(r.Context())
-
-	cacher.Invalidate(client)
+	client.InvalidateCache()
 
 	if referer := r.Referer(); referer != "" {
 		http.Redirect(w, r, referer, http.StatusFound)
@@ -46,12 +43,6 @@ type data struct {
 	Services  []csufbot.UserInService
 
 	Error error
-}
-
-func (d *data) MemberRoles() []discord.Role {
-	roles, err := d.Discord.Roles(d.Guild.ID)
-	d.Error = err
-	return roles
 }
 
 func render(w http.ResponseWriter, r *http.Request) {

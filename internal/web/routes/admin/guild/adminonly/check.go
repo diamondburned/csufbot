@@ -20,14 +20,17 @@ const (
 	cacheDataKey
 )
 
+var adminCacheKey = oauth.NewCacheKey()
+
 // Data contains data that follows after the admin check and contains
 // information about the current route.
 //
 // Routes that use the middleware is guaranteed to have routeData.
 type Data struct {
 	UserID discord.UserID
-	Guild  *discord.Guild
-	Member *discord.Member
+
+	Guild       *discord.Guild
+	MemberCount int
 }
 
 func GetData(ctx context.Context) Data {
@@ -40,14 +43,10 @@ func GetData(ctx context.Context) Data {
 
 // Require requires that the current OAuth user has the administrator permission
 // for the current guild. It requires oauth.Require.
-func Require(routeParam string, cached bool) web.Middleware {
-	if cached {
-		return cachedRequire(routeParam)
-	}
-
+func Require(routeParam string) web.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			data, ok := fetchData(w, r, routeParam)
+			data, ok := load(w, r, routeParam)
 			if !ok {
 				return
 			}
@@ -62,7 +61,7 @@ func setData(r *http.Request, data Data) *http.Request {
 	return r.WithContext(ctx)
 }
 
-func fetchData(w http.ResponseWriter, r *http.Request, routeParam string) (Data, bool) {
+func load(w http.ResponseWriter, r *http.Request, routeParam string) (Data, bool) {
 	snowflake, err := discord.ParseSnowflake(chi.URLParam(r, routeParam))
 	if err != nil {
 		errorbox.Render(w, r, 404, errors.Wrap(err, "invalid snowflake"))
@@ -72,14 +71,18 @@ func fetchData(w http.ResponseWriter, r *http.Request, routeParam string) (Data,
 	guildID := discord.GuildID(snowflake)
 
 	userClient := oauth.Client(r.Context())
+
+	cache, ok := userClient.Cache[adminCacheKey].(Data)
+	if ok && cache.Guild.ID == guildID {
+		return cache, true
+	}
+
 	userID, err := userClient.UserID()
 	if err != nil {
 		// Must be a token error that this fails.
 		errorbox.Render(w, r, 400, errors.Wrap(err, "failed to get user ID"))
 		return Data{}, false
 	}
-
-	cfg := web.GetRenderConfig(r.Context())
 
 	// Get the guild from the user's perspective.
 	guild, err := userClient.Guild(guildID)
@@ -94,16 +97,21 @@ func fetchData(w http.ResponseWriter, r *http.Request, routeParam string) (Data,
 		return Data{}, false
 	}
 
-	// We don't need to get the member's information from them.
-	member, err := cfg.Discord.Member(guildID, userID)
+	cfg := web.GetRenderConfig(r.Context())
+
+	// Check if we know this guild.
+	botGuild, err := cfg.Discord.GuildWithCount(guildID)
 	if err != nil {
-		errorbox.Render(w, r, 401, errors.Wrap(err, "invalid member"))
+		errorbox.Render(w, r, 401, errors.New("unknown guild is given"))
 		return Data{}, false
 	}
 
-	return Data{
-		UserID: userID,
-		Guild:  guild,
-		Member: member,
-	}, true
+	data := Data{
+		UserID:      userID,
+		Guild:       guild,
+		MemberCount: int(botGuild.ApproximateMembers),
+	}
+
+	userClient.Cache[adminCacheKey] = data
+	return data, true
 }
