@@ -8,7 +8,7 @@ import (
 
 const (
 	// cacheAge is the age for each cache item.
-	cacheAge = 30 * time.Minute
+	cacheAge = 1 * time.Hour
 	// globalClean is the duration to globally clean the cache.
 	globalClean = 5 * time.Hour
 )
@@ -88,8 +88,8 @@ func (c *cacheRepository) acquire(token string) *cacheItem {
 	return it
 }
 
-func (c *cacheRepository) release(item *cacheItem) {
-	item.mutex.Unlock()
+func (c *cacheRepository) release(it *cacheItem) {
+	it.mutex.Unlock()
 }
 
 func (c *cacheRepository) cleanup(now time.Time) {
@@ -99,16 +99,10 @@ func (c *cacheRepository) cleanup(now time.Time) {
 	}
 
 	c.lastClean = now
-	nowSecs := uint32(now.Unix())
 
-	if c.lastClean.Add(cacheAge).Before(now) {
-		c.lastClean = now
-
-		for k, item := range c.cc {
-			added := atomic.LoadUint32(&item.added)
-			if added+uint32(cacheAge/time.Second) < nowSecs {
-				delete(c.cc, k)
-			}
+	for k, item := range c.cc {
+		if item.isExpired(now) {
+			delete(c.cc, k)
 		}
 	}
 }
