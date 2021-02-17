@@ -1,13 +1,13 @@
 module github.com/diamondburned/csufbot
 
-go 1.15
+go 1.16
 
 require (
 	github.com/dgraph-io/badger/v3 v3.2011.1
 	github.com/diamondburned/arikawa v1.3.14
 	github.com/diamondburned/arikawa/v2 v2.0.4-0.20210208012116-d13aa00a571f
 	github.com/diamondburned/gracehttp v0.0.0-20210207013449-ee18d674f83f
-	github.com/diamondburned/tmplutil v0.0.0-20210131222542-eb3ba5ad7fdc
+	github.com/diamondburned/tmplutil v0.0.0-20210217062959-16b9405b7f71
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-chi/chi v1.5.1
 	github.com/harrybrwn/go-canvas v0.0.1

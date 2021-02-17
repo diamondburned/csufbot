@@ -5,8 +5,8 @@ import (
 
 	"github.com/diamondburned/csufbot/csufbot"
 	"github.com/diamondburned/csufbot/csufbot/lms"
+	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/csufbot/internal/web"
-	"github.com/diamondburned/csufbot/internal/web/components/errorbox"
 	"github.com/diamondburned/csufbot/internal/web/routes/admin/guild/adminonly"
 	"github.com/diamondburned/csufbot/internal/web/routes/oauth"
 	"github.com/go-chi/chi"
@@ -45,15 +45,16 @@ type data struct {
 	Error error
 }
 
-func render(w http.ResponseWriter, r *http.Request) {
-	// TODO: button to link more classes
-	cfg := web.GetRenderConfig(r.Context())
-	dat := adminonly.GetData(r.Context())
+type enrolled struct {
+	Service *config.Service
+	Courses []csufbot.Course
+}
 
-	u, err := cfg.Users.User(dat.UserID)
+func (d *data) EnrolledCourses() []enrolled {
+	u, err := d.Users.User(d.Data.UserID)
 	if err != nil { // Invalid user ID.
-		errorbox.Render(w, r, 401, errors.Wrap(err, "failed to get this user"))
-		return
+		d.Error = errors.Wrap(err, "failed to get this user")
+		return nil
 	}
 
 	var courseMap = make(map[lms.CourseID]csufbot.Course, 10)
@@ -63,10 +64,42 @@ func render(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := cfg.Courses.Courses(courseMap); err != nil {
-		errorbox.Render(w, r, 500, errors.Wrap(err, "failed to get courses"))
-		return
+	if err := d.Courses.Courses(courseMap); err != nil {
+		d.Error = errors.Wrap(err, "failed to get courses")
+		return nil
 	}
+
+	var enrolleds = make([]enrolled, 0, len(u.Services))
+
+	for _, svc := range u.Services {
+		service := d.Service(svc.ServiceHost)
+		if service == nil {
+			// Unknown service, probably removed. Ignore.
+			continue
+		}
+
+		courses := make([]csufbot.Course, 0, len(svc.Enrolled))
+		for _, id := range svc.Enrolled {
+			// A course may have been removed; we don't show them.
+			course, ok := courseMap[id]
+			if ok {
+				courses = append(courses, course)
+			}
+		}
+
+		enrolleds = append(enrolleds, enrolled{
+			Service: service,
+			Courses: courses,
+		})
+	}
+
+	return enrolleds
+}
+
+func render(w http.ResponseWriter, r *http.Request) {
+	// TODO: button to link more classes
+	cfg := web.GetRenderConfig(r.Context())
+	dat := adminonly.GetData(r.Context())
 
 	guild.Execute(w, &data{
 		RenderConfig: cfg,

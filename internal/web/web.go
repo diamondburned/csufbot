@@ -2,7 +2,7 @@ package web
 
 import (
 	"context"
-	"log"
+	"embed"
 	"net/http"
 
 	"github.com/diamondburned/csufbot/csufbot"
@@ -10,21 +10,21 @@ import (
 	"github.com/diamondburned/csufbot/internal/bot"
 	"github.com/diamondburned/csufbot/internal/config"
 	"github.com/diamondburned/tmplutil"
-	"github.com/phogolabs/parcello"
 )
 
-//go:generate go run github.com/phogolabs/parcello/cmd/parcello -r -i *.go
+//go:embed *
+var webFS embed.FS
 
 // Templater is the global template tree.
-var Templater = tmplutil.Templater{
+var Templater = tmplutil.Preregister(&tmplutil.Templater{
+	FileSystem: webFS,
 	Includes: map[string]string{
-		"css":      "components/css.html",
-		"errorbox": "components/errorbox.html",
-		"header":   "components/header.html",
-		"footer":   "components/footer.html",
+		"css":    "components/css.html",
+		"header": "components/header.html",
+		"footer": "components/footer.html",
 	},
 	Functions: funcs,
-}
+})
 
 type ctxTypes uint8
 
@@ -39,6 +39,12 @@ type RenderConfig struct {
 
 	Discord  *bot.Discord
 	Services []config.Service
+}
+
+// Service gets a service from the provided host. It returns nil if none is
+// found.
+func (rcfg RenderConfig) Service(host lms.Host) *config.Service {
+	return rcfg.FindService(string(host))
 }
 
 // FindService finds the LMS service from a given name hash.
@@ -76,10 +82,6 @@ func GetRenderConfig(ctx context.Context) RenderConfig {
 
 // MountStatic mounts the /static folder.
 func MountStatic() http.Handler {
-	d, err := parcello.Manager.Dir("static/")
-	if err != nil {
-		log.Fatalln("Static not found:", err)
-	}
-
-	return http.StripPrefix("/static", http.FileServer(d))
+	d := tmplutil.MustSub(webFS, "static")
+	return http.StripPrefix("/static", http.FileServer(http.FS(d)))
 }

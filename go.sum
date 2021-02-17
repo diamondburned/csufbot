@@ -78,6 +78,8 @@ github.com/diamondburned/gracehttp v0.0.0-20210207013449-ee18d674f83f h1:z3mKKn0
 github.com/diamondburned/gracehttp v0.0.0-20210207013449-ee18d674f83f/go.mod h1:y0DW5ASPssZc54IZtiGxAVmgsFhfQ6rfN4HqpnpenjQ=
 github.com/diamondburned/tmplutil v0.0.0-20210131222542-eb3ba5ad7fdc h1:kDfrg0pKPWHY7bNiI/X2VG5bG4jfQSJ2fCz6RacQdRk=
 github.com/diamondburned/tmplutil v0.0.0-20210131222542-eb3ba5ad7fdc/go.mod h1:SHl/HH2rMz2OymGoDl+nlzku0G3NSV7wRag5TcrUBns=
+github.com/diamondburned/tmplutil v0.0.0-20210217062959-16b9405b7f71 h1:xj5t2OMBvj5nF9maDQF5rJIWOmJyXXGDAWiCoQl9/GM=
+github.com/diamondburned/tmplutil v0.0.0-20210217062959-16b9405b7f71/go.mod h1:FBAqurv13gfYH+o5XicjpFgmFPXiqWh52nWY8k5XNt0=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
